@@ -62,6 +62,15 @@ def update_units_and_grid(self, context):
                 if space.type == 'VIEW_3D':
                     space.overlay.show_floor = settings.show_grid
                     space.overlay.grid_scale = settings.grid_spacing
+
+                    # Adjust subdivisions to keep the grid visually clean at small scales
+                    if settings.grid_spacing < 0.01: # e.g., < 1cm
+                        space.overlay.grid_subdivisions = 1
+                    elif settings.grid_spacing < 0.1: # e.g., < 10cm
+                        space.overlay.grid_subdivisions = 2
+                    else:
+                        space.overlay.grid_subdivisions = 10
+
                     space.tag_redraw()
 
 

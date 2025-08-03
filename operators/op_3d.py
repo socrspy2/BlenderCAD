@@ -38,16 +38,23 @@ class MESH_OT_create_hole(bpy.types.Operator):
         target_obj = context.active_object
         cursor_loc = context.scene.cursor.location
         bm = bmesh.new()
-        bmesh.ops.create_cone(bm, cap_ends=True, segments=64, radius1=self.diameter / 2, radius2=self.diameter / 2, depth=self.depth, location=(0, 0, -self.depth / 2))
+
+        # Main hole
+        cone_main = bmesh.ops.create_cone(bm, cap_ends=True, segments=64, radius1=self.diameter / 2, radius2=self.diameter / 2, depth=self.depth)
+        bmesh.ops.translate(bm, verts=cone_main['verts'], vec=(0, 0, -self.depth / 2))
+
         if self.hole_type == 'COUNTERBORE':
             if self.cb_diameter <= self.diameter or self.cb_depth <= 0:
                 self.report({'ERROR'}, "Counterbore dimensions must be larger than hole.")
                 return {'CANCELLED'}
-            bmesh.ops.create_cone(bm, cap_ends=True, segments=64, radius1=self.cb_diameter / 2, radius2=self.cb_diameter / 2, depth=self.cb_depth, location=(0, 0, self.cb_depth / 2))
+            cone_cb = bmesh.ops.create_cone(bm, cap_ends=True, segments=64, radius1=self.cb_diameter / 2, radius2=self.cb_diameter / 2, depth=self.cb_depth)
+            bmesh.ops.translate(bm, verts=cone_cb['verts'], vec=(0, 0, self.cb_depth / 2))
+
         elif self.hole_type == 'COUNTERSINK':
             cs_radius = self.diameter / 2
             cs_depth = cs_radius / math.tan(math.radians(self.cs_angle / 2))
-            bmesh.ops.create_cone(bm, cap_ends=True, segments=64, radius1=cs_radius, radius2=0, depth=cs_depth, location=(0, 0, cs_depth / 2))
+            cone_cs = bmesh.ops.create_cone(bm, cap_ends=True, segments=64, radius1=cs_radius, radius2=0, depth=cs_depth)
+            bmesh.ops.translate(bm, verts=cone_cs['verts'], vec=(0, 0, cs_depth / 2))
         
         cutter_mesh = bpy.data.meshes.new("HoleCutter_Mesh")
         bm.to_mesh(cutter_mesh)

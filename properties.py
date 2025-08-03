@@ -8,7 +8,7 @@ def update_ref_image_property(self, context):
         self.empty_ref.empty_display_size = self.size
         self.empty_ref.location.x = self.offset_x
         self.empty_ref.location.y = self.offset_y
-        self.empty_ref.image_opacity = self.opacity
+        self.empty_ref.color[3] = self.opacity # Use alpha channel of color for opacity
 
 def update_ref_image_visibility(self, context):
     """Toggles the visibility of all reference image empties."""

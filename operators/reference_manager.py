@@ -51,7 +51,7 @@ class IMAGE_OT_load_reference(bpy.types.Operator, ImportHelper):
             empty.empty_display_size = image_settings.size
             empty.location.x = image_settings.offset_x
             empty.location.y = image_settings.offset_y
-            empty.image_opacity = image_settings.opacity
+            empty.color[3] = image_settings.opacity # Use alpha channel of color for opacity
             empty.hide_viewport = not settings.show_ref_sketches
 
         return {'FINISHED'}

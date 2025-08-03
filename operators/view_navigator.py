@@ -33,8 +33,8 @@ class VIEW_OT_set_view_axis(bpy.types.Operator):
             if self.view_type == 'PERSP':
                 bpy.ops.view3d.view_perspective()
             else:
-                # Check the perspective from the correct space_data in the temporary context
-                if context.space_data.region_3d.view_perspective != 'ORTHO':
+                # FIXED: Check the perspective from the area's space_data, not the original context.
+                if area.spaces.active.region_3d.view_perspective != 'ORTHO':
                     bpy.ops.view3d.view_ortho()
                 
                 # Call the native view operator, which corresponds to the numpad shortcuts
@@ -46,8 +46,8 @@ class VIEW_OT_set_view_axis(bpy.types.Operator):
             # After the view has been changed, update the pan origin for the new orientation
             settings.pan_x = 0.0
             settings.pan_y = 0.0
-            # The space_data is now correctly updated within this context
-            settings.pan_origin = context.space_data.region_3d.view_location.copy()
+            # FIXED: Get the view location from the correct, overridden context area.
+            settings.pan_origin = area.spaces.active.region_3d.view_location.copy()
 
         return {'FINISHED'}
 

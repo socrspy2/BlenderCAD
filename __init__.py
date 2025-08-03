@@ -15,7 +15,7 @@ import bpy
 # Import all the modules that contain your classes
 from . import properties
 from . import utils
-from .operators import view_navigator, op_3d, sketch_tools
+from .operators import view_navigator, op_3d, sketch_tools, reference_manager
 from .ui import panel
 
 # Combine all classes from all modules (except properties) into a single tuple.
@@ -24,6 +24,7 @@ classes = (
     *view_navigator.classes,
     *op_3d.classes,
     *sketch_tools.classes,
+    *reference_manager.classes,
     *panel.classes,
 )
 

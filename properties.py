@@ -78,10 +78,10 @@ class CADToolsSettings(bpy.types.PropertyGroup):
     """Stores settings for the CAD addon."""
     # --- UI Expansion States ---
     expand_view_navigator: bpy.props.BoolProperty(default=True)
-    expand_reference_sketches: bpy.props.BoolProperty(default=True)
-    expand_units_and_grid: bpy.props.BoolProperty(default=True)
-    expand_2d_sketching: bpy.props.BoolProperty(default=True)
-    expand_3d_operations: bpy.props.BoolProperty(default=True)
+    expand_reference_sketches: bpy.props.BoolProperty(default=False)
+    expand_units_and_grid: bpy.props.BoolProperty(default=False)
+    expand_2d_sketching: bpy.props.BoolProperty(default=False)
+    expand_3d_operations: bpy.props.BoolProperty(default=False)
 
     pan_x: bpy.props.FloatProperty(name="Pan Left/Right", default=0.0, update=update_view_pan)
     pan_y: bpy.props.FloatProperty(name="Pan Up/Down", default=0.0, update=update_view_pan)

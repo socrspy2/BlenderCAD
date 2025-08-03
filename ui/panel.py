@@ -49,7 +49,7 @@ class VIEW3D_PT_cad_tools(bpy.types.Panel):
         
         # --- View Navigator Section ---
         view_box = layout.box()
-        view_box.prop(settings, "expand_view_navigator", text="View Navigator", icon='VIEW3D', emboss=False)
+        view_box.prop(settings, "expand_view_navigator", text="View Navigator", icon='VIEW3D')
         if settings.expand_view_navigator:
             row = view_box.row(align=True)
             row.operator(VIEW_OT_set_view_axis.bl_idname, text="Top").view_type = 'TOP'
@@ -67,7 +67,7 @@ class VIEW3D_PT_cad_tools(bpy.types.Panel):
 
         # --- Reference Sketches Section ---
         ref_box = layout.box()
-        ref_box.prop(settings, "expand_reference_sketches", text="Reference Sketches", icon='IMAGE', emboss=False)
+        ref_box.prop(settings, "expand_reference_sketches", text="Reference Sketches", icon='IMAGE')
         if settings.expand_reference_sketches:
             ref_box.prop(settings, "show_ref_sketches", text="Show/Hide All", toggle=True)
             self._draw_ref_image_ui(ref_box, settings, "Top", "TOP")
@@ -79,7 +79,7 @@ class VIEW3D_PT_cad_tools(bpy.types.Panel):
 
         # --- Units & Grid Section ---
         unit_box = layout.box()
-        unit_box.prop(settings, "expand_units_and_grid", text="Units & Grid", icon='GRID', emboss=False)
+        unit_box.prop(settings, "expand_units_and_grid", text="Units & Grid", icon='GRID')
         if settings.expand_units_and_grid:
             row = unit_box.row(align=True)
             row.prop(settings, "unit_system", expand=True)
@@ -99,7 +99,7 @@ class VIEW3D_PT_cad_tools(bpy.types.Panel):
 
         # --- 2D Sketching Section ---
         sketch_box = layout.box()
-        sketch_box.prop(settings, "expand_2d_sketching", text="2D Sketching", icon='GREASEPENCIL', emboss=False)
+        sketch_box.prop(settings, "expand_2d_sketching", text="2D Sketching", icon='GREASEPENCIL')
         if settings.expand_2d_sketching:
             row = sketch_box.row(align=True)
             row.operator(SKETCH_OT_draw_line.bl_idname, text="Line", icon='CURVE_PATH')
@@ -116,7 +116,7 @@ class VIEW3D_PT_cad_tools(bpy.types.Panel):
 
         # --- 3D Operations Section ---
         op_box = layout.box()
-        op_box.prop(settings, "expand_3d_operations", text="3D Operations", icon='MODIFIER', emboss=False)
+        op_box.prop(settings, "expand_3d_operations", text="3D Operations", icon='MODIFIER')
         if settings.expand_3d_operations:
             op_box.operator(MESH_OT_simple_extrude.bl_idname, text="Extrude", icon='MOD_SOLIDIFY')
             op_box.operator(MESH_OT_inset_faces.bl_idname, text="Inset", icon='FACESEL')

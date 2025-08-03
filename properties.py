@@ -2,6 +2,73 @@
 # --- File: properties.py ---
 # #############################################################################
 import bpy
+import math
+
+# --- Update functions for Reference Images ---
+def update_ref_image_property(self, context):
+    """Generic update function for reference image properties (size, offset, opacity)."""
+    if self.empty_ref:
+        self.empty_ref.empty_display_size = self.size
+        self.empty_ref.location.x = self.offset_x
+        self.empty_ref.location.y = self.offset_y
+        self.empty_ref.image_opacity = self.opacity
+        # We might need to adjust location based on view... for now, let's assume offsets are in the empty's local space.
+
+def update_ref_image_visibility(self, context):
+    """Toggles the visibility of all reference image empties."""
+    settings = context.scene.cad_tool_settings
+    view_keys = ['top', 'front', 'right', 'bottom', 'back', 'left']
+    for view_key in view_keys:
+        image_settings = getattr(settings, f"{view_key}_image", None)
+        if image_settings and image_settings.empty_ref:
+            image_settings.empty_ref.hide_viewport = not settings.show_ref_sketches
+
+
+class ReferenceImageSettings(bpy.types.PropertyGroup):
+    """Stores settings for a single reference image."""
+    filepath: bpy.props.StringProperty(subtype='FILE_PATH')
+
+    empty_ref: bpy.props.PointerProperty(
+        name="Empty Reference",
+        type=bpy.types.Object
+    )
+
+    size: bpy.props.FloatProperty(
+        name="Size",
+        default=5.0,
+        min=0.01,
+        soft_max=100.0,
+        subtype='DISTANCE',
+        update=update_ref_image_property
+    )
+
+    offset_x: bpy.props.FloatProperty(
+        name="X Offset",
+        default=0.0,
+        soft_min=-50.0,
+        soft_max=50.0,
+        subtype='DISTANCE',
+        update=update_ref_image_property
+    )
+
+    offset_y: bpy.props.FloatProperty(
+        name="Y Offset",
+        default=0.0,
+        soft_min=-50.0,
+        soft_max=50.0,
+        subtype='DISTANCE',
+        update=update_ref_image_property
+    )
+
+    opacity: bpy.props.FloatProperty(
+        name="Opacity",
+        default=0.5,
+        min=0.0,
+        max=1.0,
+        subtype='FACTOR',
+        update=update_ref_image_property
+    )
+
 
 def update_view_pan(self, context):
     """ Pans the 3D view based on the slider values. """
@@ -80,7 +147,22 @@ class CADToolsSettings(bpy.types.PropertyGroup):
         subtype='DISTANCE'
     )
 
+    # --- Reference Image Properties ---
+    show_ref_sketches: bpy.props.BoolProperty(
+        name="Show/Hide Sketches",
+        default=True,
+        update=update_ref_image_visibility
+    )
+    top_image: bpy.props.PointerProperty(type=ReferenceImageSettings)
+    front_image: bpy.props.PointerProperty(type=ReferenceImageSettings)
+    right_image: bpy.props.PointerProperty(type=ReferenceImageSettings)
+    bottom_image: bpy.props.PointerProperty(type=ReferenceImageSettings)
+    back_image: bpy.props.PointerProperty(type=ReferenceImageSettings)
+    left_image: bpy.props.PointerProperty(type=ReferenceImageSettings)
+
+
 classes = (
+    ReferenceImageSettings,
     CADToolsSettings,
 )
 

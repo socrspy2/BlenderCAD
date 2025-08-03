@@ -13,25 +13,43 @@ class VIEW_OT_set_view_axis(bpy.types.Operator):
 
     def execute(self, context):
         # Find a 3D view area and region to run the operator in
-        area_3d = next((a for a in context.screen.areas if a.type == 'VIEW_3D'), None)
-        if area_3d is None:
+        area = next((a for a in context.screen.areas if a.type == 'VIEW_3D'), None)
+        if not area:
             self.report({'WARNING'}, "Could not find a 3D Viewport")
             return {'CANCELLED'}
 
+        region = next((r for r in area.regions if r.type == 'WINDOW'), None)
+        if not region:
+            # This can happen if the view is collapsed
+            self.report({'WARNING'}, "Could not find a 3D Viewport window region")
+            return {'CANCELLED'}
+
+        # Create the explicit override context dictionary
+        override = {
+            'area': area,
+            'region': region,
+            'space_data': area.spaces.active,
+            'screen': context.screen,
+            'window': context.window,
+        }
+
         settings = context.scene.cad_tool_settings
         
-        with context.temp_override(area=area_3d, region=next(r for r in area_3d.regions if r.type == 'WINDOW')):
-            if self.view_type == 'PERSP':
-                bpy.ops.view3d.view_perspective()
-            else:
-                if context.space_data.region_3d.view_perspective != 'ORTHO':
-                    bpy.ops.view3d.view_ortho()
-                bpy.ops.view3d.view_axis(type=self.view_type)
+        if self.view_type == 'PERSP':
+            bpy.ops.view3d.view_perspective(override)
+        else:
+            # Check the perspective from the correct space_data in the override
+            if area.spaces.active.region_3d.view_perspective != 'ORTHO':
+                bpy.ops.view3d.view_ortho(override)
+            bpy.ops.view3d.view_axis(override, type=self.view_type)
 
-            bpy.ops.view3d.view_all(center=False)
-            settings.pan_x = 0.0
-            settings.pan_y = 0.0
-            settings.pan_origin = context.space_data.region_3d.view_location.copy()
+        bpy.ops.view3d.view_all(override, center=False)
+
+        # After changing view, update the pan origin for the new orientation
+        settings.pan_x = 0.0
+        settings.pan_y = 0.0
+        # The context for accessing space_data properties should be the overridden one
+        settings.pan_origin = area.spaces.active.region_3d.view_location.copy()
 
         return {'FINISHED'}
 

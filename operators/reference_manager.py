@@ -9,22 +9,15 @@ class IMAGE_OT_load_reference(bpy.types.Operator, ImportHelper):
     bl_label = "Load Reference Image"
     bl_options = {'REGISTER', 'UNDO'}
 
-    filter_glob: bpy.props.StringProperty(
-        default='*.png;*.jpg;*.jpeg;*.bmp;*.tif',
-        options={'HIDDEN'}
-    )
-
+    filter_glob: bpy.props.StringProperty(default='*.png;*.jpg;*.jpeg;*.bmp;*.tif', options={'HIDDEN'})
     view_type: bpy.props.StringProperty()
 
     def execute(self, context):
         settings = context.scene.cad_tool_settings
         image_settings_key = f"{self.view_type.lower()}_image"
         image_settings = getattr(settings, image_settings_key)
-
-        # 1. Create the Empty
         empty_name = f"ref_{self.view_type.lower()}"
 
-        # If an empty for this view already exists, remove it before creating a new one.
         if image_settings.empty_ref:
             bpy.data.objects.remove(image_settings.empty_ref, do_unlink=True)
 
@@ -32,7 +25,6 @@ class IMAGE_OT_load_reference(bpy.types.Operator, ImportHelper):
         empty.empty_display_type = 'IMAGE'
         context.collection.objects.link(empty)
 
-        # 2. Load the image
         try:
             img = bpy.data.images.load(self.filepath)
             empty.data = img
@@ -41,7 +33,6 @@ class IMAGE_OT_load_reference(bpy.types.Operator, ImportHelper):
             bpy.data.objects.remove(empty, do_unlink=True)
             return {'CANCELLED'}
 
-        # 3. Set rotation based on view type
         if self.view_type == 'FRONT':
             empty.rotation_euler = (math.radians(90), 0, 0)
         elif self.view_type == 'RIGHT':
@@ -52,13 +43,10 @@ class IMAGE_OT_load_reference(bpy.types.Operator, ImportHelper):
             empty.rotation_euler = (math.radians(90), 0, math.radians(-90))
         elif self.view_type == 'BOTTOM':
             empty.rotation_euler = (math.radians(180), 0, 0)
-        # 'TOP' has default (0,0,0) rotation, so no need to handle.
 
-        # 4. Store data in the property group
         image_settings.filepath = self.filepath
         image_settings.empty_ref = empty
 
-        # 5. Apply stored settings (size, opacity, etc.) to the new empty
         if empty:
             empty.empty_display_size = image_settings.size
             empty.location.x = image_settings.offset_x
@@ -82,22 +70,13 @@ class IMAGE_OT_clear_reference(bpy.types.Operator):
         image_settings = getattr(settings, image_settings_key)
 
         if image_settings.empty_ref:
-            # Find the image data block associated with the empty
             img_data = image_settings.empty_ref.data
-            # Remove the object
             bpy.data.objects.remove(image_settings.empty_ref, do_unlink=True)
-            # If the image data block has no other users, remove it
             if img_data and img_data.users == 0:
                 bpy.data.images.remove(img_data)
 
-        # Clear the properties
         image_settings.filepath = ""
         image_settings.empty_ref = None
-        # Optionally reset other settings, but maybe user wants to keep them for the next image
-        # image_settings.size = 5.0
-        # image_settings.offset_x = 0.0
-        # image_settings.offset_y = 0.0
-        # image_settings.opacity = 0.5
 
         return {'FINISHED'}
 
@@ -106,3 +85,11 @@ classes = (
     IMAGE_OT_load_reference,
     IMAGE_OT_clear_reference,
 )
+
+def register():
+    for cls in classes:
+        bpy.utils.register_class(cls)
+
+def unregister():
+    for cls in reversed(classes):
+        bpy.utils.unregister_class(cls)

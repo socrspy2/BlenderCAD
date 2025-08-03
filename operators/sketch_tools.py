@@ -5,6 +5,7 @@ import gpu
 import blf
 import math
 from mathutils import Vector
+from gpu_extras.batch import batch_for_shader
 from bpy_extras.view3d_utils import location_3d_to_region_2d
 from ..utils import mouse_to_plane_coord, draw_circle_3d, draw_text_2d
 
@@ -68,49 +69,72 @@ class SKETCH_OT_draw_line(SketcherModalBase):
 
     def invoke(self, context, event):
         self.points = []
+        self.mouse_pos_3d = None
         self.snapped_vertex_pos = None
+        # Drawing batches - initialized here, created/updated in modal
+        self.batch_line = None
+        self.batch_snap = None
+        # Shaders - created once
+        self.shader_3d = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+        self.shader_2d = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
         context.area.header_text_set("Line: Click for start point. ESC to cancel.")
         return super().invoke(context, event)
 
     def modal(self, context, event):
-        if not self.active: return {'FINISHED'}
-        
+        if not self.active:
+            return {'FINISHED'}
+
+        # Get current 3D mouse position
         self.mouse_pos_3d, self.snapped_vertex_pos = self.get_snapped_point(context, event)
-        if self.mouse_pos_3d is None: return {'PASS_THROUGH'}
+        if self.mouse_pos_3d is None:
+            return {'PASS_THROUGH'}
         
         context.area.tag_redraw()
 
+        # Update drawing batches based on mouse position
+        if self.snapped_vertex_pos:
+            p_2d = location_3d_to_region_2d(context.region, context.region_data, self.snapped_vertex_pos)
+            if p_2d:
+                circle_verts = draw_circle_3d(p_2d, 8, Vector((0,0,1)), segments=12)
+                self.batch_snap = batch_for_shader(self.shader_2d, 'LINE_STRIP', {"pos": circle_verts})
+            else:
+                self.batch_snap = None
+        else:
+            self.batch_snap = None
+
+        if self.points:
+            line_verts = [self.points[0], self.mouse_pos_3d]
+            self.batch_line = batch_for_shader(self.shader_3d, 'LINES', {"pos": line_verts})
+        else:
+            self.batch_line = None
+
+        # Handle user input
         if event.type == 'LEFTMOUSE' and event.value == 'PRESS':
             self.points.append(self.mouse_pos_3d)
             if len(self.points) == 2:
                 self.finish_drawing(context)
                 return {'FINISHED'}
             context.area.header_text_set("Line: Click for end point.")
+            return {'RUNNING_MODAL'}
+
         elif event.type in {'RIGHTMOUSE', 'ESC'}:
             self.cleanup(context)
             return {'CANCELLED'}
-        return {'PASS_THROUGH'}
+
+        return {'RUNNING_MODAL'}
 
     def draw_callback_px(self, context):
-        # Draw snapping indicators first
-        if self.snapped_vertex_pos:
-            p_2d = location_3d_to_region_2d(context.region, context.region_data, self.snapped_vertex_pos)
-            if p_2d:
-                shader_2d = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
-                circle = draw_circle_3d(p_2d, 8, Vector((0,0,1)), segments=12)
-                batch = batch_for_shader(shader_2d, 'LINE_STRIP', {"pos": circle})
-                shader_2d.bind()
-                shader_2d.uniform_float("color", (0.1, 0.8, 0.1, 1.0))
-                batch.draw(shader_2d)
+        # Draw snapping indicator
+        if self.batch_snap:
+            self.shader_2d.bind()
+            self.shader_2d.uniform_float("color", (0.1, 0.8, 0.1, 1.0))
+            self.batch_snap.draw(self.shader_2d)
 
         # Draw the line preview
-        if self.points and self.mouse_pos_3d:
-            shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
-            line_verts = [self.points[0], self.mouse_pos_3d]
-            batch = batch_for_shader(shader, 'LINES', {"pos": line_verts})
-            shader.bind()
-            shader.uniform_float("color", (0.1, 0.1, 0.8, 1.0))
-            batch.draw(shader)
+        if self.batch_line:
+            self.shader_3d.bind()
+            self.shader_3d.uniform_float("color", (0.1, 0.1, 0.8, 1.0))
+            self.batch_line.draw(self.shader_3d)
 
     def finish_drawing(self, context):
         if len(self.points) < 2:

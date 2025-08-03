@@ -1,10 +1,13 @@
+# This is the main __init__.py file for your addon.
+# It should be located at: /BlenderCAD-main/__init__.py
+
 bl_info = {
     "name": "Engineering CAD Tools",
     "author": "Your Name",
-    "version": (0, 22, 0),
+    "version": (1, 0, 0), # Updated to 1.0.0 as this is a major refactor
     "blender": (4, 5, 0),
     "location": "View3D > Sidebar > CAD Tools",
-    "description": "Core sketching and modeling tools for precision design.",
+    "description": "A non-destructive, parametric CAD environment for Blender.",
     "warning": "",
     "doc_url": "",
     "category": "3D View",
@@ -14,36 +17,30 @@ import bpy
 
 # Import all the modules that contain your classes
 from . import properties
-from . import utils
 from .operators import view_navigator, op_3d, sketch_tools, reference_manager
 from .ui import panel
 
-# Combine all classes from all modules (except properties) into a single tuple.
-# We will handle properties registration separately due to its special logic.
-classes = (
-    *view_navigator.classes,
-    *op_3d.classes,
-    *sketch_tools.classes,
-    *reference_manager.classes,
-    *panel.classes,
-)
+# A list of all modules that have their own register() functions
+modules = [
+    properties,
+    view_navigator,
+    op_3d,
+    sketch_tools,
+    reference_manager,
+    panel,
+]
 
 def register():
-    # Register all the classes from the tuple
-    for cls in classes:
-        bpy.utils.register_class(cls)
-
-    # Now, handle the registration for the properties module, which includes
-    # setting up the PropertyGroup on the scene.
-    properties.register()
+    """This function is called when the addon is enabled."""
+    # Loop through all our modules and call their individual register() functions.
+    for m in modules:
+        m.register()
 
 def unregister():
-    # Unregister in the reverse order. Start with the properties.
-    properties.unregister()
-
-    # Then unregister all the other classes.
-    for cls in reversed(classes):
-        bpy.utils.unregister_class(cls)
+    """This function is called when the addon is disabled."""
+    # It's important to unregister in the reverse order to avoid issues.
+    for m in reversed(modules):
+        m.unregister()
 
 if __name__ == "__main__":
     register()

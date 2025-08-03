@@ -75,8 +75,7 @@ class SKETCH_OT_draw_line(SketcherModalBase):
         self.batch_line = None
         self.batch_snap = None
         # Shaders - created once
-        self.shader_3d = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
-        self.shader_2d = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
+        self.shader = gpu.shader.from_builtin('UNIFORM_COLOR')
         context.area.header_text_set("Line: Click for start point. ESC to cancel.")
         return super().invoke(context, event)
 
@@ -96,7 +95,7 @@ class SKETCH_OT_draw_line(SketcherModalBase):
             p_2d = location_3d_to_region_2d(context.region, context.region_data, self.snapped_vertex_pos)
             if p_2d:
                 circle_verts = draw_circle_3d(p_2d, 8, Vector((0,0,1)), segments=12)
-                self.batch_snap = batch_for_shader(self.shader_2d, 'LINE_STRIP', {"pos": circle_verts})
+                self.batch_snap = batch_for_shader(self.shader, 'LINE_STRIP', {"pos": circle_verts})
             else:
                 self.batch_snap = None
         else:
@@ -104,7 +103,7 @@ class SKETCH_OT_draw_line(SketcherModalBase):
 
         if self.points:
             line_verts = [self.points[0], self.mouse_pos_3d]
-            self.batch_line = batch_for_shader(self.shader_3d, 'LINES', {"pos": line_verts})
+            self.batch_line = batch_for_shader(self.shader, 'LINES', {"pos": line_verts})
         else:
             self.batch_line = None
 
@@ -126,15 +125,15 @@ class SKETCH_OT_draw_line(SketcherModalBase):
     def draw_callback_px(self, context):
         # Draw snapping indicator
         if self.batch_snap:
-            self.shader_2d.bind()
-            self.shader_2d.uniform_float("color", (0.1, 0.8, 0.1, 1.0))
-            self.batch_snap.draw(self.shader_2d)
+            self.shader.bind()
+            self.shader.uniform_float("color", (0.1, 0.8, 0.1, 1.0))
+            self.batch_snap.draw(self.shader)
 
         # Draw the line preview
         if self.batch_line:
-            self.shader_3d.bind()
-            self.shader_3d.uniform_float("color", (0.1, 0.1, 0.8, 1.0))
-            self.batch_line.draw(self.shader_3d)
+            self.shader.bind()
+            self.shader.uniform_float("color", (0.1, 0.1, 0.8, 1.0))
+            self.batch_line.draw(self.shader)
 
     def finish_drawing(self, context):
         if len(self.points) < 2:

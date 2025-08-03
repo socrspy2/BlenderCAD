@@ -28,8 +28,9 @@ class VIEW_OT_set_view_axis(bpy.types.Operator):
             if self.view_type == 'PERSP':
                 bpy.ops.view3d.view_perspective()
             else:
-                if area.spaces.active.region_3d.view_perspective != 'ORTHO':
-                    bpy.ops.view3d.view_ortho()
+                # In Blender 4.x, calling view_axis automatically handles ortho switching.
+                # The explicit call to view_ortho() is removed.
+                area.spaces.active.region_3d.view_perspective = 'ORTHO'
                 bpy.ops.view3d.view_axis(type=self.view_type)
 
             bpy.ops.view3d.view_all(center=False)

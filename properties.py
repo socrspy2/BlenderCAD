@@ -79,6 +79,10 @@ class CADToolsSettings(bpy.types.PropertyGroup):
     show_grid: bpy.props.BoolProperty(name="Show Grid", default=True, update=update_units_and_grid)
     grid_spacing: bpy.props.FloatProperty(name="Grid Spacing", default=0.01, min=0.0001, subtype='DISTANCE', update=update_units_and_grid)
 
+    show_grid_dimensions: bpy.props.BoolProperty(name="Show Dimensions", default=False, description="Display grid scale markings in the viewport", update=update_units_and_grid)
+    grid_dimension_font_size: bpy.props.IntProperty(name="Font Size", default=12, min=8, max=72, description="Font size for the grid dimensions", update=update_units_and_grid)
+    grid_dimension_color: bpy.props.FloatVectorProperty(name="Color", subtype='COLOR', default=(1.0, 1.0, 1.0), min=0.0, max=1.0, description="Color for the grid dimensions", update=update_units_and_grid)
+
     show_ref_sketches: bpy.props.BoolProperty(name="Show/Hide Sketches", default=True, update=update_ref_image_visibility)
     top_image: bpy.props.PointerProperty(type=ReferenceImageSettings)
     front_image: bpy.props.PointerProperty(type=ReferenceImageSettings)

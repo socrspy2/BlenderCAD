@@ -18,7 +18,7 @@ import bpy
 # Import all the modules that contain your classes
 from . import properties
 from .operators import view_navigator, op_3d, sketch_tools, reference_manager
-from .ui import panel
+from .ui import panel, draw_handlers
 
 # A list of all modules that have their own register() functions
 modules = [
@@ -28,6 +28,7 @@ modules = [
     sketch_tools,
     reference_manager,
     panel,
+    draw_handlers,
 ]
 
 def register():

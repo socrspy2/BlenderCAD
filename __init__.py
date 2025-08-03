@@ -1,14 +1,3 @@
-#
-# Blender Addon: Engineering CAD Tools - Core Sketcher v22
-#
-# This script creates a foundational CAD environment in Blender.
-#
-# Version 22 Changes:
-# - FIXED: The persistent RuntimeError and ValueError by implementing the
-#   standard `with context.temp_override()` method for operator calls.
-# - This definitive fix ensures the operator has the full context it needs
-#   to run reliably, correctly orienting the grid in all views.
-#
 bl_info = {
     "name": "Engineering CAD Tools",
     "author": "Your Name",
@@ -21,28 +10,39 @@ bl_info = {
     "category": "3D View",
 }
 
+import bpy
+
 # Import all the modules that contain your classes
 from . import properties
 from . import utils
 from .operators import view_navigator, op_3d, sketch_tools
 from .ui import panel
 
-# A list of all modules that have their own register() functions
-modules = [
-    properties,
-    view_navigator,
-    op_3d,
-    sketch_tools,
-    panel,
-]
+# Combine all classes from all modules (except properties) into a single tuple.
+# We will handle properties registration separately due to its special logic.
+classes = (
+    *view_navigator.classes,
+    *op_3d.classes,
+    *sketch_tools.classes,
+    *panel.classes,
+)
 
 def register():
-    for m in modules:
-        m.register()
+    # Register all the classes from the tuple
+    for cls in classes:
+        bpy.utils.register_class(cls)
+
+    # Now, handle the registration for the properties module, which includes
+    # setting up the PropertyGroup on the scene.
+    properties.register()
 
 def unregister():
-    for m in reversed(modules):
-        m.unregister()
+    # Unregister in the reverse order. Start with the properties.
+    properties.unregister()
+
+    # Then unregister all the other classes.
+    for cls in reversed(classes):
+        bpy.utils.unregister_class(cls)
 
 if __name__ == "__main__":
     register()

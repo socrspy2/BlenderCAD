@@ -86,6 +86,13 @@ class VIEW3D_PT_cad_tools(bpy.types.Panel):
         row = unit_box.row(align=True)
         row.prop(settings, "show_grid", text="Show Grid")
         row.prop(settings, "grid_spacing", text="Spacing")
+        unit_box.separator()
+        unit_box.prop(settings, "show_grid_dimensions", text="Show Dimensions")
+        if settings.show_grid_dimensions:
+            col = unit_box.column(align=True)
+            col.use_property_split = True
+            col.prop(settings, "grid_dimension_font_size", text="Font Size")
+            col.prop(settings, "grid_dimension_color", text="Color")
 
         # --- 2D Sketching Section ---
         sketch_box = layout.box()

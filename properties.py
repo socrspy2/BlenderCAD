@@ -1,8 +1,5 @@
-# #############################################################################
 # --- File: properties.py ---
-# #############################################################################
 import bpy
-import math
 
 # --- Update functions for Reference Images ---
 def update_ref_image_property(self, context):
@@ -12,7 +9,6 @@ def update_ref_image_property(self, context):
         self.empty_ref.location.x = self.offset_x
         self.empty_ref.location.y = self.offset_y
         self.empty_ref.image_opacity = self.opacity
-        # We might need to adjust location based on view... for now, let's assume offsets are in the empty's local space.
 
 def update_ref_image_visibility(self, context):
     """Toggles the visibility of all reference image empties."""
@@ -27,47 +23,11 @@ def update_ref_image_visibility(self, context):
 class ReferenceImageSettings(bpy.types.PropertyGroup):
     """Stores settings for a single reference image."""
     filepath: bpy.props.StringProperty(subtype='FILE_PATH')
-
-    empty_ref: bpy.props.PointerProperty(
-        name="Empty Reference",
-        type=bpy.types.Object
-    )
-
-    size: bpy.props.FloatProperty(
-        name="Size",
-        default=5.0,
-        min=0.01,
-        soft_max=100.0,
-        subtype='DISTANCE',
-        update=update_ref_image_property
-    )
-
-    offset_x: bpy.props.FloatProperty(
-        name="X Offset",
-        default=0.0,
-        soft_min=-50.0,
-        soft_max=50.0,
-        subtype='DISTANCE',
-        update=update_ref_image_property
-    )
-
-    offset_y: bpy.props.FloatProperty(
-        name="Y Offset",
-        default=0.0,
-        soft_min=-50.0,
-        soft_max=50.0,
-        subtype='DISTANCE',
-        update=update_ref_image_property
-    )
-
-    opacity: bpy.props.FloatProperty(
-        name="Opacity",
-        default=0.5,
-        min=0.0,
-        max=1.0,
-        subtype='FACTOR',
-        update=update_ref_image_property
-    )
+    empty_ref: bpy.props.PointerProperty(name="Empty Reference", type=bpy.types.Object)
+    size: bpy.props.FloatProperty(name="Size", default=5.0, min=0.01, subtype='DISTANCE', update=update_ref_image_property)
+    offset_x: bpy.props.FloatProperty(name="X Offset", default=0.0, subtype='DISTANCE', update=update_ref_image_property)
+    offset_y: bpy.props.FloatProperty(name="Y Offset", default=0.0, subtype='DISTANCE', update=update_ref_image_property)
+    opacity: bpy.props.FloatProperty(name="Opacity", default=0.5, min=0.0, max=1.0, subtype='FACTOR', update=update_ref_image_property)
 
 
 def update_view_pan(self, context):
@@ -89,7 +49,6 @@ def update_units_and_grid(self, context):
     scene = context.scene
     settings = scene.cad_tool_settings
 
-    # Update Blender's unit system
     if settings.unit_system == 'METRIC':
         scene.unit_settings.system = 'METRIC'
         scene.unit_settings.length_unit = settings.metric_unit
@@ -97,14 +56,12 @@ def update_units_and_grid(self, context):
         scene.unit_settings.system = 'IMPERIAL'
         scene.unit_settings.length_unit = 'INCHES'
 
-    # Update viewport overlays
     for area in context.screen.areas:
         if area.type == 'VIEW_3D':
             for space in area.spaces:
                 if space.type == 'VIEW_3D':
                     space.overlay.show_floor = settings.show_grid
                     space.overlay.grid_scale = settings.grid_spacing
-                    # Force a redraw of all viewports
                     space.tag_redraw()
 
 
@@ -117,42 +74,12 @@ class CADToolsSettings(bpy.types.PropertyGroup):
     use_grid_snap: bpy.props.BoolProperty(name="Grid Snap", default=False)
     use_vertex_snap: bpy.props.BoolProperty(name="Vertex Snap", default=True)
 
-    # --- New Unit and Grid Properties ---
-    unit_system: bpy.props.EnumProperty(
-        name="Unit System",
-        items=[('METRIC', "Metric", "Use metric units (m, cm, mm)"),
-               ('IMPERIAL', "Imperial", "Use imperial units (feet, inches)")],
-        default='METRIC',
-        update=update_units_and_grid
-    )
-    metric_unit: bpy.props.EnumProperty(
-        name="Metric Unit",
-        items=[('METERS', "Meters", ""),
-               ('CENTIMETERS', "Centimeters", ""),
-               ('MILLIMETERS', "Millimeters", "")],
-        default='MILLIMETERS',
-        update=update_units_and_grid
-    )
-    show_grid: bpy.props.BoolProperty(
-        name="Show Grid",
-        default=True,
-        update=update_units_and_grid
-    )
-    grid_spacing: bpy.props.FloatProperty(
-        name="Grid Spacing",
-        default=0.01, # Default to 1cm for mm view
-        min=0.0001,
-        soft_max=100.0,
-        update=update_units_and_grid,
-        subtype='DISTANCE'
-    )
+    unit_system: bpy.props.EnumProperty(name="Unit System", items=[('METRIC', "Metric", ""), ('IMPERIAL', "Imperial", "")], default='METRIC', update=update_units_and_grid)
+    metric_unit: bpy.props.EnumProperty(name="Metric Unit", items=[('METERS', "Meters", ""), ('CENTIMETERS', "Centimeters", ""), ('MILLIMETERS', "Millimeters", "")], default='MILLIMETERS', update=update_units_and_grid)
+    show_grid: bpy.props.BoolProperty(name="Show Grid", default=True, update=update_units_and_grid)
+    grid_spacing: bpy.props.FloatProperty(name="Grid Spacing", default=0.01, min=0.0001, subtype='DISTANCE', update=update_units_and_grid)
 
-    # --- Reference Image Properties ---
-    show_ref_sketches: bpy.props.BoolProperty(
-        name="Show/Hide Sketches",
-        default=True,
-        update=update_ref_image_visibility
-    )
+    show_ref_sketches: bpy.props.BoolProperty(name="Show/Hide Sketches", default=True, update=update_ref_image_visibility)
     top_image: bpy.props.PointerProperty(type=ReferenceImageSettings)
     front_image: bpy.props.PointerProperty(type=ReferenceImageSettings)
     right_image: bpy.props.PointerProperty(type=ReferenceImageSettings)

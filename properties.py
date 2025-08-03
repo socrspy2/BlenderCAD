@@ -1,0 +1,95 @@
+# #############################################################################
+# --- File: properties.py ---
+# #############################################################################
+import bpy
+
+def update_view_pan(self, context):
+    """ Pans the 3D view based on the slider values. """
+    space = context.space_data
+    if space.type == 'VIEW_3D':
+        region_3d = space.region_3d
+        view_matrix = region_3d.view_matrix.inverted()
+        x_axis = view_matrix.col[0].xyz
+        y_axis = view_matrix.col[1].xyz
+        new_location = self.pan_origin + (x_axis * self.pan_x) + (y_axis * self.pan_y)
+        region_3d.view_location = new_location
+
+def update_units_and_grid(self, context):
+    """ Updates Blender's scene and viewport based on addon settings. """
+    if not context.scene:
+        return
+        
+    scene = context.scene
+    settings = scene.cad_tool_settings
+
+    # Update Blender's unit system
+    if settings.unit_system == 'METRIC':
+        scene.unit_settings.system = 'METRIC'
+        scene.unit_settings.length_unit = settings.metric_unit
+    elif settings.unit_system == 'IMPERIAL':
+        scene.unit_settings.system = 'IMPERIAL'
+        scene.unit_settings.length_unit = 'INCHES'
+
+    # Update viewport overlays
+    for area in context.screen.areas:
+        if area.type == 'VIEW_3D':
+            for space in area.spaces:
+                if space.type == 'VIEW_3D':
+                    space.overlay.show_floor = settings.show_grid
+                    space.overlay.grid_scale = settings.grid_spacing
+                    # Force a redraw of all viewports
+                    space.tag_redraw()
+
+
+class CADToolsSettings(bpy.types.PropertyGroup):
+    """Stores settings for the CAD addon."""
+    pan_x: bpy.props.FloatProperty(name="Pan Left/Right", default=0.0, update=update_view_pan)
+    pan_y: bpy.props.FloatProperty(name="Pan Up/Down", default=0.0, update=update_view_pan)
+    pan_origin: bpy.props.FloatVectorProperty(name="Pan Origin", subtype='TRANSLATION')
+    
+    use_grid_snap: bpy.props.BoolProperty(name="Grid Snap", default=False)
+    use_vertex_snap: bpy.props.BoolProperty(name="Vertex Snap", default=True)
+
+    # --- New Unit and Grid Properties ---
+    unit_system: bpy.props.EnumProperty(
+        name="Unit System",
+        items=[('METRIC', "Metric", "Use metric units (m, cm, mm)"),
+               ('IMPERIAL', "Imperial", "Use imperial units (feet, inches)")],
+        default='METRIC',
+        update=update_units_and_grid
+    )
+    metric_unit: bpy.props.EnumProperty(
+        name="Metric Unit",
+        items=[('METERS', "Meters", ""),
+               ('CENTIMETERS', "Centimeters", ""),
+               ('MILLIMETERS', "Millimeters", "")],
+        default='MILLIMETERS',
+        update=update_units_and_grid
+    )
+    show_grid: bpy.props.BoolProperty(
+        name="Show Grid",
+        default=True,
+        update=update_units_and_grid
+    )
+    grid_spacing: bpy.props.FloatProperty(
+        name="Grid Spacing",
+        default=0.01, # Default to 1cm for mm view
+        min=0.0001,
+        soft_max=100.0,
+        update=update_units_and_grid,
+        subtype='DISTANCE'
+    )
+
+classes = (
+    CADToolsSettings,
+)
+
+def register():
+    for cls in classes:
+        bpy.utils.register_class(cls)
+    bpy.types.Scene.cad_tool_settings = bpy.props.PointerProperty(type=CADToolsSettings)
+
+def unregister():
+    del bpy.types.Scene.cad_tool_settings
+    for cls in reversed(classes):
+        bpy.utils.unregister_class(cls)

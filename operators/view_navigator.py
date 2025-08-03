@@ -12,7 +12,9 @@ class VIEW_OT_set_view_axis(bpy.types.Operator):
     view_type: bpy.props.StringProperty()
 
     def execute(self, context):
-        # Find a 3D view area and region to run the operator in
+        # --- ROBUST CONTEXT OVERRIDE ---
+        # Find the first available 3D Viewport area and its main window region.
+        # This is the most reliable way to prevent context errors with view operators.
         area = next((a for a in context.screen.areas if a.type == 'VIEW_3D'), None)
         if not area:
             self.report({'WARNING'}, "Could not find a 3D Viewport")
@@ -20,39 +22,43 @@ class VIEW_OT_set_view_axis(bpy.types.Operator):
 
         region = next((r for r in area.regions if r.type == 'WINDOW'), None)
         if not region:
-            # This can happen if the view is collapsed
             self.report({'WARNING'}, "Could not find a 3D Viewport window region")
             return {'CANCELLED'}
 
-        # Create the explicit override context dictionary
-        override = {
-            'area': area,
-            'region': region,
-            'space_data': area.spaces.active,
-            'screen': context.screen,
-            'window': context.window,
-        }
-
         settings = context.scene.cad_tool_settings
         
-        if self.view_type == 'PERSP':
-            bpy.ops.view3d.view_perspective(override)
-        else:
-            # Check the perspective from the correct space_data in the override
-            if area.spaces.active.region_3d.view_perspective != 'ORTHO':
-                bpy.ops.view3d.view_ortho(override)
-            bpy.ops.view3d.view_axis(override, type=self.view_type)
+        # Use the standard and most robust method for context override.
+        # This temporarily tells Blender to run all operators within this specific area.
+        with context.temp_override(area=area, region=region):
+            if self.view_type == 'PERSP':
+                bpy.ops.view3d.view_perspective()
+            else:
+                # Check the perspective from the correct space_data in the temporary context
+                if context.space_data.region_3d.view_perspective != 'ORTHO':
+                    bpy.ops.view3d.view_ortho()
+                
+                # Call the native view operator, which corresponds to the numpad shortcuts
+                bpy.ops.view3d.view_axis(type=self.view_type)
 
-        bpy.ops.view3d.view_all(override, center=False)
+            # Center the view after setting the orientation
+            bpy.ops.view3d.view_all(center=False)
 
-        # After changing view, update the pan origin for the new orientation
-        settings.pan_x = 0.0
-        settings.pan_y = 0.0
-        # The context for accessing space_data properties should be the overridden one
-        settings.pan_origin = area.spaces.active.region_3d.view_location.copy()
+            # After the view has been changed, update the pan origin for the new orientation
+            settings.pan_x = 0.0
+            settings.pan_y = 0.0
+            # The space_data is now correctly updated within this context
+            settings.pan_origin = context.space_data.region_3d.view_location.copy()
 
         return {'FINISHED'}
 
 classes = (
     VIEW_OT_set_view_axis,
 )
+
+def register():
+    for cls in classes:
+        bpy.utils.register_class(cls)
+
+def unregister():
+    for cls in reversed(classes):
+        bpy.utils.unregister_class(cls)

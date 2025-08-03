@@ -17,12 +17,11 @@ class SketcherModalBase(bpy.types.Operator):
         self.active = True
         self.draw_handle = bpy.types.SpaceView3D.draw_handler_add(self.draw_callback_px, (context,), 'WINDOW', 'POST_VIEW')
         context.window_manager.modal_handler_add(self)
-        self.original_cursor = context.window.cursor_get()
         context.window.cursor_set('CROSSHAIR')
         return {'RUNNING_MODAL'}
 
     def cleanup(self, context):
-        context.window.cursor_set(self.original_cursor)
+        context.window.cursor_set('DEFAULT')
         context.area.header_text_set(None)
         if self.draw_handle:
             bpy.types.SpaceView3D.draw_handler_remove(self.draw_handle, 'WINDOW')

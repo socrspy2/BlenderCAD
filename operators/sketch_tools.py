@@ -93,7 +93,7 @@ class SKETCH_OT_draw_line(SketcherModalBase):
         if self.snapped_vertex_pos:
             p_2d = location_3d_to_region_2d(context.region, context.region_data, self.snapped_vertex_pos)
             if p_2d:
-                circle_verts = draw_circle_3d(p_2d, 8, Vector((0,0,1)), segments=12)
+                circle_verts = draw_circle_3d(p_2d.to_3d(), 8, Vector((0,0,1)), segments=12)
                 self.batch_snap = batch_for_shader(self.shader, 'LINE_STRIP', {"pos": circle_verts})
             else:
                 self.batch_snap = None

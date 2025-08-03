@@ -5,8 +5,9 @@ import bpy
 # The '..' means "go up one directory level" from ui/ to the addon root.
 from ..operators.view_navigator import VIEW_OT_set_view_axis
 from ..operators.sketch_tools import (
-    SKETCH_OT_draw_line, SKETCH_OT_draw_rectangle, SKETCH_OT_draw_circle,
-    SKETCH_OT_draw_polyline, SKETCH_OT_draw_arc, SKETCH_OT_draw_circle_diameter
+    SKETCH_OT_draw_line,
+    # SKETCH_OT_draw_rectangle, SKETCH_OT_draw_circle,
+    # SKETCH_OT_draw_polyline, SKETCH_OT_draw_arc, SKETCH_OT_draw_circle_diameter
 )
 from ..operators.op_3d import (
     MESH_OT_simple_extrude, MESH_OT_inset_faces, MESH_OT_offset_edges, MESH_OT_bevel_edges,
@@ -91,12 +92,13 @@ class VIEW3D_PT_cad_tools(bpy.types.Panel):
         sketch_box.label(text="2D Sketching", icon='GREASEPENCIL')
         row = sketch_box.row(align=True)
         row.operator(SKETCH_OT_draw_line.bl_idname, text="Line", icon='CURVE_PATH')
-        row.operator(SKETCH_OT_draw_rectangle.bl_idname, text="Rectangle", icon='MESH_PLANE')
-        row.operator(SKETCH_OT_draw_circle.bl_idname, text="Circle", icon='MESH_CIRCLE')
-        row = sketch_box.row(align=True)
-        row.operator(SKETCH_OT_draw_polyline.bl_idname, text="Poly-line", icon='MOD_MULTIRES')
-        row.operator(SKETCH_OT_draw_arc.bl_idname, text="Arc", icon='CURVE_NCIRCLE')
-        row.operator(SKETCH_OT_draw_circle_diameter.bl_idname, text="2P Circle", icon='MESH_CIRCLE')
+        # The following operators are not yet implemented
+        # row.operator(SKETCH_OT_draw_rectangle.bl_idname, text="Rectangle", icon='MESH_PLANE')
+        # row.operator(SKETCH_OT_draw_circle.bl_idname, text="Circle", icon='MESH_CIRCLE')
+        # row = sketch_box.row(align=True)
+        # row.operator(SKETCH_OT_draw_polyline.bl_idname, text="Poly-line", icon='MOD_MULTIRES')
+        # row.operator(SKETCH_OT_draw_arc.bl_idname, text="Arc", icon='CURVE_NCIRCLE')
+        # row.operator(SKETCH_OT_draw_circle_diameter.bl_idname, text="2P Circle", icon='MESH_CIRCLE')
         col = sketch_box.column(align=True)
         col.prop(settings, "use_grid_snap")
         col.prop(settings, "use_vertex_snap")

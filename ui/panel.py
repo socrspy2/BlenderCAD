@@ -13,7 +13,36 @@ from ..operators.op_3d import (
     MESH_OT_simple_extrude, MESH_OT_inset_faces, MESH_OT_offset_edges, MESH_OT_bevel_edges,
     MESH_OT_create_hole, MESH_OT_create_gear
 )
+from ..operators.op_3d import (
+    MESH_OT_simple_extrude, MESH_OT_inset_faces, MESH_OT_offset_edges, MESH_OT_bevel_edges,
+    MESH_OT_create_hole, MESH_OT_create_gear
+)
 from ..operators.reference_manager import IMAGE_OT_load_reference, IMAGE_OT_clear_reference
+from ..operators.feature_manager import (
+    OBJECT_OT_add_feature, OBJECT_OT_remove_feature, OBJECT_OT_move_feature
+)
+
+
+class OBJECT_UL_feature_tree(bpy.types.UIList):
+    """UIList for displaying the feature tree."""
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        # data is the object, item is the feature
+        obj = data
+        feature = item
+
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            # Default icon
+            op_icon = 'MODIFIER'
+            if feature.type == 'EXTRUDE':
+                op_icon = 'MOD_SOLIDIFY'
+            elif feature.type == 'BEVEL':
+                op_icon = 'MOD_BEVEL'
+
+            layout.label(text=feature.name, icon=op_icon)
+
+        elif self.layout_type in {'GRID'}:
+            layout.alignment = 'CENTER'
+            layout.label(text="", icon_value=icon)
 
 
 class VIEW3D_PT_cad_tools(bpy.types.Panel):
@@ -46,6 +75,34 @@ class VIEW3D_PT_cad_tools(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         settings = context.scene.cad_tool_settings
+        obj = context.object
+
+        # --- Feature Tree Section ---
+        if obj:
+            # Check if the object has our custom property group
+            if hasattr(obj, 'cad_tool_settings'):
+                obj_settings = obj.cad_tool_settings
+                ft_box = layout.box()
+                row = ft_box.row()
+                row.prop(obj_settings, "expand_feature_tree", text="Feature Tree", icon='OUTLINER_DATA_MODIFIER')
+                if obj_settings.expand_feature_tree:
+                    ft_box.template_list(
+                        "OBJECT_UL_feature_tree", # The name of the UIList class
+                        "", # list_id (unused)
+                        obj_settings,          # data: the property group containing the collection
+                        "feature_tree",        # property_name: the name of the collection property
+                        obj_settings,          # active_data: the property group containing the active index
+                        "active_feature_index" # active_property_name: the name of the active index property
+                    )
+                    # Add/Remove/Move Buttons
+                    row = ft_box.row(align=True)
+                    row.operator(OBJECT_OT_add_feature.bl_idname, text="Add", icon='ADD').feature_type = 'EXTRUDE'
+                    row.operator(OBJECT_OT_remove_feature.bl_idname, text="Remove", icon='REMOVE')
+                    col = row.column(align=True)
+                    move_up_op = col.operator(OBJECT_OT_move_feature.bl_idname, text="", icon='TRIA_UP')
+                    move_up_op.direction = 'UP'
+                    move_down_op = col.operator(OBJECT_OT_move_feature.bl_idname, text="", icon='TRIA_DOWN')
+                    move_down_op.direction = 'DOWN'
         
         # --- View Navigator Section ---
         view_box = layout.box()
@@ -128,6 +185,7 @@ class VIEW3D_PT_cad_tools(bpy.types.Panel):
 
 
 classes = (
+    OBJECT_UL_feature_tree,
     VIEW3D_PT_cad_tools,
 )
 

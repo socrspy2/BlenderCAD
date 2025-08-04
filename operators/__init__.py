@@ -2,3 +2,4 @@
 from . import op_3d
 from . import sketch_tools
 from . import view_navigator
+from . import feature_manager

@@ -88,12 +88,10 @@ class CADFeature(bpy.types.PropertyGroup):
 
 class ExtrudeFeature(CADFeature):
     """Properties for an extrude feature."""
-    type: bpy.props.EnumProperty(default='EXTRUDE', options={'HIDDEN'})
     extrude_depth: bpy.props.FloatProperty(name="Depth", default=1.0, subtype='DISTANCE')
 
 class BevelFeature(CADFeature):
     """Properties for a bevel feature."""
-    type: bpy.props.EnumProperty(default='BEVEL', options={'HIDDEN'})
     bevel_amount: bpy.props.FloatProperty(name="Amount", default=0.2, subtype='DISTANCE')
     bevel_segments: bpy.props.IntProperty(name="Segments", default=4, min=1)
 

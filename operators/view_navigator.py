@@ -21,7 +21,7 @@ class VIEW_OT_set_view_axis(bpy.types.Operator):
             self.report({'WARNING'}, "Could not find a 3D Viewport window region")
             return {'CANCELLED'}
 
-        settings = context.scene.cad_tool_settings
+        settings = context.scene.scene_cad_settings
         
         # Use the standard and most robust method for context override.
         with context.temp_override(area=area, region=region):

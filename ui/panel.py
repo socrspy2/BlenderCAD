@@ -48,9 +48,9 @@ class VIEW3D_PT_cad_tools(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_category = 'CAD Tools'
 
-    def _draw_ref_image_ui(self, layout, settings, view_name, view_type):
+    def _draw_ref_image_ui(self, layout, scene_settings, view_name, view_type):
         """Helper function to draw the UI for a single reference image view."""
-        image_settings = getattr(settings, f"{view_name.lower()}_image")
+        image_settings = getattr(scene_settings, f"{view_name.lower()}_image")
         box = layout.box()
         row = box.row()
         icon = 'IMAGE_DATA' if image_settings.filepath else 'NONE'
@@ -70,14 +70,14 @@ class VIEW3D_PT_cad_tools(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        settings = context.scene.cad_tool_settings
+        scene_settings = context.scene.scene_cad_settings
         obj = context.object
 
         # --- Feature Tree Section ---
         if obj:
             # Check if the object has our custom property group
-            if hasattr(obj, 'cad_tool_settings'):
-                obj_settings = obj.cad_tool_settings
+            if hasattr(obj, 'object_cad_settings'):
+                obj_settings = obj.object_cad_settings
                 ft_box = layout.box()
                 row = ft_box.row()
                 row.prop(obj_settings, "expand_feature_tree", text="Feature Tree", icon='OUTLINER_DATA_MODIFIER')
@@ -102,8 +102,8 @@ class VIEW3D_PT_cad_tools(bpy.types.Panel):
         
         # --- View Navigator Section ---
         view_box = layout.box()
-        view_box.prop(settings, "expand_view_navigator", text="View Navigator", icon='VIEW3D')
-        if settings.expand_view_navigator:
+        view_box.prop(scene_settings, "expand_view_navigator", text="View Navigator", icon='VIEW3D')
+        if scene_settings.expand_view_navigator:
             row = view_box.row(align=True)
             row.operator(VIEW_OT_set_view_axis.bl_idname, text="Top").view_type = 'TOP'
             row.operator(VIEW_OT_set_view_axis.bl_idname, text="Front").view_type = 'FRONT'
@@ -115,45 +115,45 @@ class VIEW3D_PT_cad_tools(bpy.types.Panel):
             row = view_box.row(align=True)
             row.operator(VIEW_OT_set_view_axis.bl_idname, text="Perspective", icon='VIEW_PERSPECTIVE').view_type = 'PERSP'
             col = view_box.column(align=True)
-            col.prop(settings, "pan_x", text="L/R")
-            col.prop(settings, "pan_y", text="U/D")
+            col.prop(scene_settings, "pan_x", text="L/R")
+            col.prop(scene_settings, "pan_y", text="U/D")
 
         # --- Reference Sketches Section ---
         ref_box = layout.box()
-        ref_box.prop(settings, "expand_reference_sketches", text="Reference Sketches", icon='IMAGE')
-        if settings.expand_reference_sketches:
-            ref_box.prop(settings, "show_ref_sketches", text="Show/Hide All", toggle=True)
-            self._draw_ref_image_ui(ref_box, settings, "Top", "TOP")
-            self._draw_ref_image_ui(ref_box, settings, "Front", "FRONT")
-            self._draw_ref_image_ui(ref_box, settings, "Right", "RIGHT")
-            self._draw_ref_image_ui(ref_box, settings, "Bottom", "BOTTOM")
-            self._draw_ref_image_ui(ref_box, settings, "Back", "BACK")
-            self._draw_ref_image_ui(ref_box, settings, "Left", "LEFT")
+        ref_box.prop(scene_settings, "expand_reference_sketches", text="Reference Sketches", icon='IMAGE')
+        if scene_settings.expand_reference_sketches:
+            ref_box.prop(scene_settings, "show_ref_sketches", text="Show/Hide All", toggle=True)
+            self._draw_ref_image_ui(ref_box, scene_settings, "Top", "TOP")
+            self._draw_ref_image_ui(ref_box, scene_settings, "Front", "FRONT")
+            self._draw_ref_image_ui(ref_box, scene_settings, "Right", "RIGHT")
+            self._draw_ref_image_ui(ref_box, scene_settings, "Bottom", "BOTTOM")
+            self._draw_ref_image_ui(ref_box, scene_settings, "Back", "BACK")
+            self._draw_ref_image_ui(ref_box, scene_settings, "Left", "LEFT")
 
         # --- Units & Grid Section ---
         unit_box = layout.box()
-        unit_box.prop(settings, "expand_units_and_grid", text="Units & Grid", icon='GRID')
-        if settings.expand_units_and_grid:
+        unit_box.prop(scene_settings, "expand_units_and_grid", text="Units & Grid", icon='GRID')
+        if scene_settings.expand_units_and_grid:
             row = unit_box.row(align=True)
-            row.prop(settings, "unit_system", expand=True)
-            if settings.unit_system == 'METRIC':
+            row.prop(scene_settings, "unit_system", expand=True)
+            if scene_settings.unit_system == 'METRIC':
                 row = unit_box.row(align=True)
-                row.prop(settings, "metric_unit", expand=True)
+                row.prop(scene_settings, "metric_unit", expand=True)
             row = unit_box.row(align=True)
-            row.prop(settings, "show_grid", text="Show Grid")
-            row.prop(settings, "grid_spacing", text="Spacing")
+            row.prop(scene_settings, "show_grid", text="Show Grid")
+            row.prop(scene_settings, "grid_spacing", text="Spacing")
             unit_box.separator()
-            unit_box.prop(settings, "show_grid_dimensions", text="Show Dimensions")
-            if settings.show_grid_dimensions:
+            unit_box.prop(scene_settings, "show_grid_dimensions", text="Show Dimensions")
+            if scene_settings.show_grid_dimensions:
                 col = unit_box.column(align=True)
                 col.use_property_split = True
-                col.prop(settings, "grid_dimension_font_size", text="Font Size")
-                col.prop(settings, "grid_dimension_color", text="Color")
+                col.prop(scene_settings, "grid_dimension_font_size", text="Font Size")
+                col.prop(scene_settings, "grid_dimension_color", text="Color")
 
         # --- 2D Sketching Section ---
         sketch_box = layout.box()
-        sketch_box.prop(settings, "expand_2d_sketching", text="2D Sketching", icon='GREASEPENCIL')
-        if settings.expand_2d_sketching:
+        sketch_box.prop(scene_settings, "expand_2d_sketching", text="2D Sketching", icon='GREASEPENCIL')
+        if scene_settings.expand_2d_sketching:
             row = sketch_box.row(align=True)
             row.operator(SKETCH_OT_draw_line.bl_idname, text="Line", icon='CURVE_PATH')
             # The following operators are not yet implemented
@@ -164,13 +164,13 @@ class VIEW3D_PT_cad_tools(bpy.types.Panel):
             # row.operator(SKETCH_OT_draw_arc.bl_idname, text="Arc", icon='CURVE_NCIRCLE')
             # row.operator(SKETCH_OT_draw_circle_diameter.bl_idname, text="2P Circle", icon='MESH_CIRCLE')
             col = sketch_box.column(align=True)
-            col.prop(settings, "use_grid_snap")
-            col.prop(settings, "use_vertex_snap")
+            col.prop(scene_settings, "use_grid_snap")
+            col.prop(scene_settings, "use_vertex_snap")
 
         # --- 3D Operations Section ---
         op_box = layout.box()
-        op_box.prop(settings, "expand_3d_operations", text="3D Operations", icon='MODIFIER')
-        if settings.expand_3d_operations:
+        op_box.prop(scene_settings, "expand_3d_operations", text="3D Operations", icon='MODIFIER')
+        if scene_settings.expand_3d_operations:
             op_box.operator(MESH_OT_simple_extrude.bl_idname, text="Extrude", icon='MOD_SOLIDIFY')
             op_box.operator(MESH_OT_inset_faces.bl_idname, text="Inset", icon='FACESEL')
             op_box.operator(MESH_OT_offset_edges.bl_idname, text="Offset", icon='EDGESEL')

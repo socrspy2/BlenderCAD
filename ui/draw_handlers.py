@@ -30,7 +30,7 @@ def get_view_orientation(context):
 
 def draw_grid_dimensions_callback(context):
     """Draws dimension labels on the grid in the 3D viewport."""
-    settings = context.scene.cad_tool_settings
+    settings = context.scene.scene_cad_settings
     if not settings.show_grid_dimensions:
         return
 

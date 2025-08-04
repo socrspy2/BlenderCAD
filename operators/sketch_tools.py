@@ -29,7 +29,7 @@ class SketcherModalBase(bpy.types.Operator):
 
     def get_snapped_point(self, context, event):
         """Calculates the 3D mouse position with snapping."""
-        settings = context.scene.cad_tool_settings
+        settings = context.scene.scene_cad_settings
         snapped_vertex_pos = None
 
         temp_mouse_pos = mouse_to_plane_coord(context, event)

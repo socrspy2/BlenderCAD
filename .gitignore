@@ -10,3 +10,4 @@ operators/__pycache__/view_navigator.cpython-311.pyc
 ui/__pycache__/__init__.cpython-311.pyc
 ui/__pycache__/draw_handlers.cpython-311.pyc
 ui/__pycache__/panel.cpython-311.pyc
+operators/__pycache__/feature_manager.cpython-311.pyc

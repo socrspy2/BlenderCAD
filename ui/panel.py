@@ -18,6 +18,50 @@ from ..operators.feature_manager import (
     OBJECT_OT_add_feature, OBJECT_OT_remove_feature, OBJECT_OT_move_feature
 )
 
+# --- IMPORTANT: Assume SceneCADSettings and other PropertyGroups are defined and registered in properties.py ---
+# You MUST ensure these classes (SceneCADSettings, ImageSettings) are defined in your 'properties.py' file
+# and that 'properties.py' is correctly registered in your addon's __init__.py.
+# This file (ui/panel.py) will now just import and use them.
+try:
+    from .. import properties as addon_properties
+except ImportError:
+    print("Warning: Could not import 'properties' module. Ensure SceneCADSettings is defined and registered.")
+    # Fallback/dummy classes to prevent immediate errors if properties.py is missing or malformed
+    class SceneCADSettings(bpy.types.PropertyGroup):
+        use_vertex_snap: bpy.props.BoolProperty(name="Vertex Snap", default=True)
+        use_grid_snap: bpy.props.BoolProperty(name="Grid Snap", default=True)
+        use_fill: bpy.props.BoolProperty(name="Auto Fill Closed Shapes", default=False)
+        expand_feature_tree: bpy.props.BoolProperty(default=True)
+        expand_view_navigator: bpy.props.BoolProperty(default=True)
+        expand_reference_sketches: bpy.props.BoolProperty(default=True)
+        expand_units_and_grid: bpy.props.BoolProperty(default=True)
+        expand_2d_sketching: bpy.props.BoolProperty(default=True)
+        expand_3d_operations: bpy.props.BoolProperty(default=True)
+        show_ref_sketches: bpy.props.BoolProperty(default=True)
+        unit_system: bpy.props.EnumProperty(items=[('METRIC', "Metric", "")])
+        metric_unit: bpy.props.EnumProperty(items=[('MM', "Millimeters", "")])
+        show_grid: bpy.props.BoolProperty(default=True)
+        grid_spacing: bpy.props.FloatProperty(default=1.0)
+        show_grid_dimensions: bpy.props.BoolProperty(default=True)
+        grid_dimension_font_size: bpy.props.IntProperty(default=12)
+        grid_dimension_color: bpy.props.FloatVectorProperty(size=4, default=(1.0,1.0,1.0,1.0))
+        # Dummy ImageSettings for fallback
+        class ImageSettings(bpy.types.PropertyGroup):
+            filepath: bpy.props.StringProperty()
+            size: bpy.props.FloatProperty(default=1.0)
+            opacity: bpy.props.FloatProperty(default=0.5)
+            offset_x: bpy.props.FloatProperty(default=0.0)
+            offset_y: bpy.props.FloatProperty(default=0.0)
+        top_image: bpy.props.PointerProperty(type=ImageSettings)
+        front_image: bpy.props.PointerProperty(type=ImageSettings)
+        right_image: bpy.props.PointerProperty(type=ImageSettings)
+        bottom_image: bpy.props.PointerProperty(type=ImageSettings)
+        back_image: bpy.props.PointerProperty(type=ImageSettings)
+        left_image: bpy.props.PointerProperty(type=ImageSettings)
+
+    # If addon_properties is not available, we'll use the dummy SceneCADSettings
+    addon_properties = type('DummyProperties', (object,), {'SceneCADSettings': SceneCADSettings})()
+
 
 class OBJECT_UL_feature_tree(bpy.types.UIList):
     """UIList for displaying the feature tree."""
@@ -50,17 +94,21 @@ class VIEW3D_PT_cad_tools(bpy.types.Panel):
 
     def _draw_ref_image_ui(self, layout, scene_settings, view_name, view_type):
         """Helper function to draw the UI for a single reference image view."""
-        image_settings = getattr(scene_settings, f"{view_name.lower()}_image")
+        # Ensure image_settings is accessible and has a 'filepath' property
+        image_settings = getattr(scene_settings, f"{view_name.lower()}_image", None)
+        
         box = layout.box()
         row = box.row()
-        icon = 'IMAGE_DATA' if image_settings.filepath else 'NONE'
+        icon = 'IMAGE_DATA' if (image_settings and image_settings.filepath) else 'NONE'
         row.label(text=view_name, icon=icon)
-        if image_settings.filepath:
+        
+        if image_settings and image_settings.filepath:
             clear_op = row.operator(IMAGE_OT_clear_reference.bl_idname, text="Clear", icon='TRASH')
             clear_op.view_type = view_type
         load_op = row.operator(IMAGE_OT_load_reference.bl_idname, text="Load", icon='FILE_FOLDER')
         load_op.view_type = view_type
-        if image_settings.filepath:
+        
+        if image_settings and image_settings.filepath:
             col = box.column(align=True)
             col.use_property_split = True
             col.prop(image_settings, "size")
@@ -166,6 +214,8 @@ class VIEW3D_PT_cad_tools(bpy.types.Panel):
             col = sketch_box.column(align=True)
             col.prop(scene_settings, "use_grid_snap")
             col.prop(scene_settings, "use_vertex_snap")
+            # --- New: Auto Fill Closed Shapes option ---
+            col.prop(scene_settings, "use_fill")
 
         # --- 3D Operations Section ---
         op_box = layout.box()
@@ -186,6 +236,8 @@ classes = (
 )
 
 def register():
+    # We assume addon_properties.SceneCADSettings is registered in properties.py
+    # and the PointerProperty on bpy.types.Scene is also handled there.
     for cls in classes:
         bpy.utils.register_class(cls)
 

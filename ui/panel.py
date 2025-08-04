@@ -11,7 +11,7 @@ from ..operators.sketch_tools import (
 )
 from ..operators.op_3d import (
     MESH_OT_simple_extrude, MESH_OT_inset_faces, MESH_OT_offset_edges, MESH_OT_bevel_edges,
-    MESH_OT_create_hole, MESH_OT_create_gear
+    MESH_OT_create_hole, MESH_OT_create_gear, MESH_OT_inner_radius
 )
 from ..operators.reference_manager import IMAGE_OT_load_reference, IMAGE_OT_clear_reference
 from ..operators.feature_manager import (
@@ -177,6 +177,7 @@ class VIEW3D_PT_cad_tools(bpy.types.Panel):
             op_box.operator(MESH_OT_bevel_edges.bl_idname, text="Bevel", icon='MOD_BEVEL')
             op_box.separator()
             op_box.operator(MESH_OT_create_hole.bl_idname, text="Hole Tool", icon='MESH_CYLINDER')
+            op_box.operator(MESH_OT_inner_radius.bl_idname, text="Inner Radius", icon='MESH_TORUS')
             op_box.operator(MESH_OT_create_gear.bl_idname, text="Spur Gear", icon='MOD_ARRAY')
 
 

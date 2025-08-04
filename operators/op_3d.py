@@ -199,6 +199,52 @@ class MESH_OT_bevel_edges(bpy.types.Operator):
             return {'CANCELLED'}
         return {'FINISHED'}
 
+class MESH_OT_inner_radius(bpy.types.Operator):
+    """Creates a hollow object with a specified wall thickness."""
+    bl_idname = "mesh.inner_radius"
+    bl_label = "Inner Radius"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    width: bpy.props.FloatProperty(
+        name="Width",
+        description="Distance between the inner and outer edge",
+        default=0.1,
+        min=0.001,
+        subtype='DISTANCE'
+    )
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_object is not None and context.active_object.type == 'MESH'
+
+    def execute(self, context):
+        target_obj = context.active_object
+
+        # Duplicate the object to create the cutter
+        bpy.ops.object.duplicate()
+        cutter_obj = context.active_object
+
+        # Shrink the cutter object to create the inner void
+        bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.mesh.select_all(action='SELECT')
+        bpy.ops.transform.shrink_fatten(value=-self.width)
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+        # Add boolean modifier to the original object
+        bpy.context.view_layer.objects.active = target_obj
+        mod = target_obj.modifiers.new(name="InnerRadiusBoolean", type='BOOLEAN')
+        mod.operation = 'DIFFERENCE'
+        mod.object = cutter_obj
+        mod.solver = 'FAST'
+
+        # Apply the modifier
+        bpy.ops.object.modifier_apply(modifier=mod.name)
+
+        # Clean up the cutter object
+        bpy.data.objects.remove(cutter_obj, do_unlink=True)
+
+        return {'FINISHED'}
+
 classes = (
     MESH_OT_create_hole,
     MESH_OT_create_gear,
@@ -206,6 +252,7 @@ classes = (
     MESH_OT_offset_edges,
     MESH_OT_inset_faces,
     MESH_OT_bevel_edges,
+    MESH_OT_inner_radius,
 )
 
 def register():

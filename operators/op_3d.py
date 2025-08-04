@@ -140,44 +140,7 @@ class MESH_OT_simple_extrude(bpy.types.Operator):
             return {'CANCELLED'}
         return {'FINISHED'}
 
-class MESH_OT_offset_edges(bpy.types.Operator):
-    """Offsets the selected edges of the active object."""
-    bl_idname = "mesh.offset_edges"
-    bl_label = "Offset Edges"
-    bl_options = {'REGISTER', 'UNDO'}
 
-    offset_distance: bpy.props.FloatProperty(name="Distance", default=0.2, subtype='DISTANCE')
-
-    def execute(self, context):
-        if context.active_object and context.active_object.type == 'MESH':
-            bpy.ops.object.mode_set(mode='EDIT')
-            bpy.ops.mesh.select_all(action='SELECT')
-            bpy.ops.mesh.offset_edges(geometry_mode='extrude', use_even=True, amount=self.offset_distance)
-            bpy.ops.object.mode_set(mode='OBJECT')
-        else:
-            self.report({'WARNING'}, "No active mesh object selected.")
-            return {'CANCELLED'}
-        return {'FINISHED'}
-
-class MESH_OT_inset_faces(bpy.types.Operator):
-    """Insets the selected faces of the active object."""
-    bl_idname = "mesh.inset_faces"
-    bl_label = "Inset Faces"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    inset_thickness: bpy.props.FloatProperty(name="Thickness", default=0.2, subtype='DISTANCE')
-    inset_depth: bpy.props.FloatProperty(name="Depth", default=0.0, subtype='DISTANCE')
-
-    def execute(self, context):
-        if context.active_object and context.active_object.type == 'MESH':
-            bpy.ops.object.mode_set(mode='EDIT')
-            bpy.ops.mesh.select_all(action='SELECT')
-            bpy.ops.mesh.inset(thickness=self.inset_thickness, depth=self.inset_depth)
-            bpy.ops.object.mode_set(mode='OBJECT')
-        else:
-            self.report({'WARNING'}, "No active mesh object selected.")
-            return {'CANCELLED'}
-        return {'FINISHED'}
 
 class MESH_OT_bevel_edges(bpy.types.Operator):
     """Bevels the selected edges of the active object."""
@@ -206,16 +169,53 @@ class MESH_OT_inner_radius(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     width: bpy.props.FloatProperty(
-        name="Width",
-        description="Distance between the inner and outer edge",
+        name="Wall Thickness (X)",
+        description="Wall thickness on the X-axis",
         default=0.1,
         min=0.001,
         subtype='DISTANCE'
     )
-    
+
+    length: bpy.props.FloatProperty(
+        name="Wall Thickness (Y)",
+        description="Wall thickness on the Y-axis",
+        default=0.1,
+        min=0.001,
+        subtype='DISTANCE'
+    )
+
+    height: bpy.props.FloatProperty(
+        name="Wall Thickness (Z)",
+        description="Wall thickness on the Z-axis",
+        default=0.1,
+        min=0.001,
+        subtype='DISTANCE'
+    )
+
+    offset_x: bpy.props.FloatProperty(
+        name="Offset X (Left/Right)",
+        description="Move the inner hole left or right",
+        default=0.0,
+        subtype='DISTANCE'
+    )
+
+    offset_y: bpy.props.FloatProperty(
+        name="Offset Y (Front/Back)",
+        description="Move the inner hole front or back",
+        default=0.0,
+        subtype='DISTANCE'
+    )
+
+    offset_z: bpy.props.FloatProperty(
+        name="Offset Z (Up/Down)",
+        description="Move the inner hole up or down",
+        default=0.0,
+        subtype='DISTANCE'
+    )
+
     rotation: bpy.props.FloatProperty(
         name="Rotation",
-        description="Rotation of the inner hole",
+        description="Rotation of the inner hole around the Z-axis",
         default=0.0,
         subtype='ANGLE',
         unit='ROTATION'
@@ -227,16 +227,41 @@ class MESH_OT_inner_radius(bpy.types.Operator):
 
     def execute(self, context):
         target_obj = context.active_object
+        
+        # Apply scale of target object to avoid issues with dimensions
+        bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
 
         # Duplicate the object to create the cutter
         bpy.ops.object.duplicate()
         cutter_obj = context.active_object
-        
+
+        # Move the cutter
+        cutter_obj.location.x += self.offset_x
+        cutter_obj.location.y += self.offset_y
+        cutter_obj.location.z += self.offset_z
+
         # Rotate the cutter
         cutter_obj.rotation_euler.z += self.rotation
 
+        # Calculate scale factors from wall thickness
+        dims = target_obj.dimensions
+        
+        if dims.x == 0 or dims.y == 0 or dims.z == 0:
+            self.report({'ERROR'}, "Object has zero dimension on one or more axes.")
+            bpy.data.objects.remove(cutter_obj, do_unlink=True)
+            return {'CANCELLED'}
+            
+        scale_x = (dims.x - 2 * self.width) / dims.x if dims.x != 0 else 1
+        scale_y = (dims.y - 2 * self.length) / dims.y if dims.y != 0 else 1
+        scale_z = (dims.z - 2 * self.height) / dims.z if dims.z != 0 else 1
+        
+        if scale_x <= 0 or scale_y <= 0 or scale_z <= 0:
+            self.report({'ERROR'}, "Wall thickness is too large for the object dimensions.")
+            bpy.data.objects.remove(cutter_obj, do_unlink=True)
+            return {'CANCELLED'}
+
         # Scale the cutter
-        bpy.ops.transform.resize(value=(1 - self.width, 1 - self.width, 1 - self.width))
+        bpy.ops.transform.resize(value=(scale_x, scale_y, scale_z))
 
         # Add boolean modifier to the original object
         bpy.context.view_layer.objects.active = target_obj
@@ -257,8 +282,6 @@ classes = (
     MESH_OT_create_hole,
     MESH_OT_create_gear,
     MESH_OT_simple_extrude,
-    MESH_OT_offset_edges,
-    MESH_OT_inset_faces,
     MESH_OT_bevel_edges,
     MESH_OT_inner_radius,
 )

@@ -10,7 +10,7 @@ from ..operators.sketch_tools import (
     # SKETCH_OT_draw_polyline, SKETCH_OT_draw_arc, SKETCH_OT_draw_circle_diameter
 )
 from ..operators.op_3d import (
-    MESH_OT_simple_extrude, MESH_OT_inset_faces, MESH_OT_offset_edges, MESH_OT_bevel_edges,
+    MESH_OT_simple_extrude, MESH_OT_bevel_edges,
     MESH_OT_create_hole, MESH_OT_create_gear, MESH_OT_inner_radius
 )
 from ..operators.reference_manager import IMAGE_OT_load_reference, IMAGE_OT_clear_reference
@@ -222,8 +222,7 @@ class VIEW3D_PT_cad_tools(bpy.types.Panel):
         op_box.prop(scene_settings, "expand_3d_operations", text="3D Operations", icon='MODIFIER')
         if scene_settings.expand_3d_operations:
             op_box.operator(MESH_OT_simple_extrude.bl_idname, text="Extrude", icon='MOD_SOLIDIFY')
-            op_box.operator(MESH_OT_inset_faces.bl_idname, text="Inset", icon='FACESEL')
-            op_box.operator(MESH_OT_offset_edges.bl_idname, text="Offset", icon='EDGESEL')
+            
             op_box.operator(MESH_OT_bevel_edges.bl_idname, text="Bevel", icon='MOD_BEVEL')
             op_box.separator()
             op_box.operator(MESH_OT_create_hole.bl_idname, text="Hole Tool", icon='MESH_CYLINDER')

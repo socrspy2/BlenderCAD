@@ -80,7 +80,7 @@ class VIEW3D_PT_cad_tools(bpy.types.Panel):
                 obj_settings = obj.object_cad_settings
                 ft_box = layout.box()
                 row = ft_box.row()
-                row.prop(obj_settings, "expand_feature_tree", text="Feature Tree", icon='OUTLINER_DATA_MODIFIER')
+                row.prop(obj_settings, "expand_feature_tree", text="Feature Tree", icon='MODIFIER')
                 if obj_settings.expand_feature_tree:
                     ft_box.template_list(
                         "OBJECT_UL_feature_tree", # The name of the UIList class
@@ -120,7 +120,7 @@ class VIEW3D_PT_cad_tools(bpy.types.Panel):
 
         # --- Reference Sketches Section ---
         ref_box = layout.box()
-        ref_box.prop(scene_settings, "expand_reference_sketches", text="Reference Sketches", icon='IMAGE')
+        ref_box.prop(scene_settings, "expand_reference_sketches", text="Reference Sketches", icon='IMAGE_REFERENCE')
         if scene_settings.expand_reference_sketches:
             ref_box.prop(scene_settings, "show_ref_sketches", text="Show/Hide All", toggle=True)
             self._draw_ref_image_ui(ref_box, scene_settings, "Top", "TOP")

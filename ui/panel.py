@@ -147,6 +147,38 @@ class VIEW3D_PT_cad_tools(bpy.types.Panel):
                     move_up_op.direction = 'UP'
                     move_down_op = col.operator(OBJECT_OT_move_feature.bl_idname, text="", icon='TRIA_DOWN')
                     move_down_op.direction = 'DOWN'
+
+                    # --- Feature Properties ---
+                    if obj_settings.feature_tree and obj_settings.active_feature_index >= 0:
+                        active_feature = obj_settings.feature_tree[obj_settings.active_feature_index]
+                        props_box = ft_box.box()
+                        props_box.label(text=f"Properties: {active_feature.name}")
+                        if active_feature.type == 'EXTRUDE':
+                            props_box.prop(active_feature, "extrude_depth")
+                        elif active_feature.type == 'BEVEL':
+                            props_box.prop(active_feature, "bevel_amount")
+                            props_box.prop(active_feature, "bevel_segments")
+                        elif active_feature.type == 'INNER_RADIUS':
+                            props_box.prop(active_feature, "inner_radius_width")
+                            props_box.prop(active_feature, "inner_radius_length")
+                            props_box.prop(active_feature, "inner_radius_height")
+                            props_box.prop(active_feature, "inner_radius_offset_x")
+                            props_box.prop(active_feature, "inner_radius_offset_y")
+                            props_box.prop(active_feature, "inner_radius_offset_z")
+                            props_box.prop(active_feature, "inner_radius_rotation")
+                        elif active_feature.type == 'CREATE_HOLE':
+                            props_box.prop(active_feature, "hole_type")
+                            props_box.prop(active_feature, "hole_diameter")
+                            props_box.prop(active_feature, "hole_depth")
+                            if active_feature.hole_type == 'COUNTERBORE':
+                                props_box.prop(active_feature, "hole_cb_diameter")
+                                props_box.prop(active_feature, "hole_cb_depth")
+                            elif active_feature.hole_type == 'COUNTERSINK':
+                                props_box.prop(active_feature, "hole_cs_angle")
+                        elif active_feature.type == 'CREATE_GEAR':
+                            props_box.prop(active_feature, "gear_module")
+                            props_box.prop(active_feature, "gear_num_teeth")
+                            props_box.prop(active_feature, "gear_width")
         
         # --- View Navigator Section ---
         view_box = layout.box()

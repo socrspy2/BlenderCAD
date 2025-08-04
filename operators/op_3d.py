@@ -72,6 +72,18 @@ class MESH_OT_create_hole(bpy.types.Operator):
         bpy.ops.object.modifier_apply({"modifier": mod.name})
         bpy.data.objects.remove(cutter_obj, do_unlink=True)
         bpy.data.meshes.remove(cutter_mesh)
+
+        # Add to feature tree
+        feature = target_obj.object_cad_settings.feature_tree.add()
+        feature.name = "Create Hole"
+        feature.type = 'CREATE_HOLE'
+        feature.hole_type = self.hole_type
+        feature.hole_diameter = self.diameter
+        feature.hole_depth = self.depth
+        feature.hole_cb_diameter = self.cb_diameter
+        feature.hole_cb_depth = self.cb_depth
+        feature.hole_cs_angle = self.cs_angle
+
         return {'FINISHED'}
 
 
@@ -118,6 +130,15 @@ class MESH_OT_create_gear(bpy.types.Operator):
         context.collection.objects.link(gear_obj)
         context.view_layer.objects.active = gear_obj
         gear_obj.select_set(True)
+
+        # Add to feature tree
+        feature = gear_obj.object_cad_settings.feature_tree.add()
+        feature.name = "Create Gear"
+        feature.type = 'CREATE_GEAR'
+        feature.gear_module = self.module
+        feature.gear_num_teeth = self.num_teeth
+        feature.gear_width = self.width
+
         return {'FINISHED'}
 
 
@@ -135,6 +156,12 @@ class MESH_OT_simple_extrude(bpy.types.Operator):
             bpy.ops.mesh.select_all(action='SELECT')
             bpy.ops.mesh.extrude_region_move(TRANSFORM_OT_translate={"value": (0, 0, self.extrude_depth)})
             bpy.ops.object.mode_set(mode='OBJECT')
+
+            # Add to feature tree
+            feature = context.active_object.object_cad_settings.feature_tree.add()
+            feature.name = "Extrude"
+            feature.type = 'EXTRUDE'
+            feature.extrude_depth = self.extrude_depth
         else:
             self.report({'WARNING'}, "No active mesh object selected.")
             return {'CANCELLED'}
@@ -157,6 +184,13 @@ class MESH_OT_bevel_edges(bpy.types.Operator):
             bpy.ops.mesh.select_all(action='SELECT')
             bpy.ops.mesh.bevel(offset=self.bevel_amount, segments=self.bevel_segments)
             bpy.ops.object.mode_set(mode='OBJECT')
+
+            # Add to feature tree
+            feature = context.active_object.object_cad_settings.feature_tree.add()
+            feature.name = "Bevel"
+            feature.type = 'BEVEL'
+            feature.bevel_amount = self.bevel_amount
+            feature.bevel_segments = self.bevel_segments
         else:
             self.report({'WARNING'}, "No active mesh object selected.")
             return {'CANCELLED'}
@@ -275,6 +309,18 @@ class MESH_OT_inner_radius(bpy.types.Operator):
 
         # Clean up the cutter object
         bpy.data.objects.remove(cutter_obj, do_unlink=True)
+
+        # Add to feature tree
+        feature = target_obj.object_cad_settings.feature_tree.add()
+        feature.name = "Inner Radius"
+        feature.type = 'INNER_RADIUS'
+        feature.inner_radius_width = self.width
+        feature.inner_radius_length = self.length
+        feature.inner_radius_height = self.height
+        feature.inner_radius_offset_x = self.offset_x
+        feature.inner_radius_offset_y = self.offset_y
+        feature.inner_radius_offset_z = self.offset_z
+        feature.inner_radius_rotation = self.rotation
 
         return {'FINISHED'}
 

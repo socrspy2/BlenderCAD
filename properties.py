@@ -75,16 +75,48 @@ def update_units_and_grid(self, context):
 
 
 class CADFeature(bpy.types.PropertyGroup):
-    """Base class for a single feature in the feature tree."""
+    """Properties for a single feature in the feature tree."""
     name: bpy.props.StringProperty(name="Feature Name")
     type: bpy.props.EnumProperty(
         name="Feature Type",
         items=[
             ('EXTRUDE', "Extrude", "Extrude operation"),
             ('BEVEL', "Bevel", "Bevel operation"),
-            # Add other feature types here in the future
+            ('INNER_RADIUS', "Inner Radius", "Inner Radius operation"),
+            ('CREATE_HOLE', "Create Hole", "Create Hole operation"),
+            ('CREATE_GEAR', "Create Gear", "Create Gear operation"),
         ]
     )
+
+    # --- Extrude Properties ---
+    extrude_depth: bpy.props.FloatProperty(name="Depth", default=1.0, subtype='DISTANCE')
+
+    # --- Bevel Properties ---
+    bevel_amount: bpy.props.FloatProperty(name="Amount", default=0.2, subtype='DISTANCE')
+    bevel_segments: bpy.props.IntProperty(name="Segments", default=4, min=1)
+
+    # --- Inner Radius Properties ---
+    inner_radius_width: bpy.props.FloatProperty(name="Wall Thickness (X)", default=0.1, min=0.001, subtype='DISTANCE')
+    inner_radius_length: bpy.props.FloatProperty(name="Wall Thickness (Y)", default=0.1, min=0.001, subtype='DISTANCE')
+    inner_radius_height: bpy.props.FloatProperty(name="Wall Thickness (Z)", default=0.1, min=0.001, subtype='DISTANCE')
+    inner_radius_offset_x: bpy.props.FloatProperty(name="Offset X", default=0.0, subtype='DISTANCE')
+    inner_radius_offset_y: bpy.props.FloatProperty(name="Offset Y", default=0.0, subtype='DISTANCE')
+    inner_radius_offset_z: bpy.props.FloatProperty(name="Offset Z", default=0.0, subtype='DISTANCE')
+    inner_radius_rotation: bpy.props.FloatProperty(name="Rotation", default=0.0, subtype='ANGLE', unit='ROTATION')
+
+    # --- Create Hole Properties ---
+    hole_type: bpy.props.EnumProperty(name="Type", items=[('SIMPLE', "Simple", ""), ('COUNTERBORE', "Counterbore", ""), ('COUNTERSINK', "Countersink", "")], default='SIMPLE')
+    hole_diameter: bpy.props.FloatProperty(name="Diameter", default=0.005, min=0.0001, subtype='DISTANCE')
+    hole_depth: bpy.props.FloatProperty(name="Depth", default=0.01, min=0.0001, subtype='DISTANCE')
+    hole_cb_diameter: bpy.props.FloatProperty(name="CB Diameter", default=0.01, min=0.0001, subtype='DISTANCE')
+    hole_cb_depth: bpy.props.FloatProperty(name="CB Depth", default=0.002, min=0.0001, subtype='DISTANCE')
+    hole_cs_angle: bpy.props.FloatProperty(name="CS Angle", default=90.0, min=1.0, max=179.0, subtype='ANGLE')
+
+    # --- Create Gear Properties ---
+    gear_module: bpy.props.FloatProperty(name="Module", default=0.1, min=0.01)
+    gear_num_teeth: bpy.props.IntProperty(name="Number of Teeth", default=12, min=3)
+    gear_width: bpy.props.FloatProperty(name="Width", default=0.2, min=0.001, subtype='DISTANCE')
+
 
 class ExtrudeFeature(CADFeature):
     """Properties for an extrude feature."""

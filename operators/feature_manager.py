@@ -25,7 +25,7 @@ class OBJECT_OT_add_feature(bpy.types.Operator):
         # For now, just a placeholder.
         self.report({'INFO'}, f"Placeholder: Add {self.feature_type} feature.")
         # Example of how it would work:
-        # new_feature = obj.cad_tool_settings.feature_tree.add()
+        # new_feature = obj.object_cad_settings.feature_tree.add()
         # new_feature.name = self.feature_type.capitalize()
         # new_feature.type = self.feature_type
         return {'FINISHED'}
@@ -40,11 +40,11 @@ class OBJECT_OT_remove_feature(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         obj = context.object
-        return obj and obj.cad_tool_settings and len(obj.cad_tool_settings.feature_tree) > 0
+        return obj and obj.object_cad_settings and len(obj.object_cad_settings.feature_tree) > 0
 
     def execute(self, context):
         obj = context.object
-        settings = obj.cad_tool_settings
+        settings = obj.object_cad_settings
         index = settings.active_feature_index
 
         # In a real implementation, we would remove the feature.
@@ -73,11 +73,11 @@ class OBJECT_OT_move_feature(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         obj = context.object
-        return obj and obj.cad_tool_settings and len(obj.cad_tool_settings.feature_tree) > 1
+        return obj and obj.object_cad_settings and len(obj.object_cad_settings.feature_tree) > 1
 
     def execute(self, context):
         obj = context.object
-        settings = obj.cad_tool_settings
+        settings = obj.object_cad_settings
         index = settings.active_feature_index
 
         # In a real implementation, we would move the feature.

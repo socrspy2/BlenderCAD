@@ -13,7 +13,7 @@ class IMAGE_OT_load_reference(bpy.types.Operator, ImportHelper):
     view_type: bpy.props.StringProperty()
 
     def execute(self, context):
-        settings = context.scene.cad_tool_settings
+        settings = context.scene.scene_cad_settings
         image_settings_key = f"{self.view_type.lower()}_image"
         image_settings = getattr(settings, image_settings_key)
         empty_name = f"ref_{self.view_type.lower()}"
@@ -65,7 +65,7 @@ class IMAGE_OT_clear_reference(bpy.types.Operator):
     view_type: bpy.props.StringProperty()
 
     def execute(self, context):
-        settings = context.scene.cad_tool_settings
+        settings = context.scene.scene_cad_settings
         image_settings_key = f"{self.view_type.lower()}_image"
         image_settings = getattr(settings, image_settings_key)
 

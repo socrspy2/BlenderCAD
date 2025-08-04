@@ -12,7 +12,7 @@ def update_ref_image_property(self, context):
 
 def update_ref_image_visibility(self, context):
     """Toggles the visibility of all reference image empties."""
-    settings = context.scene.cad_tool_settings
+    settings = context.scene.scene_cad_settings
     view_keys = ['top', 'front', 'right', 'bottom', 'back', 'left']
     for view_key in view_keys:
         image_settings = getattr(settings, f"{view_key}_image", None)
@@ -47,7 +47,7 @@ def update_units_and_grid(self, context):
         return
         
     scene = context.scene
-    settings = scene.cad_tool_settings
+    settings = scene.scene_cad_settings
 
     if settings.unit_system == 'METRIC':
         scene.unit_settings.system = 'METRIC'
@@ -96,14 +96,15 @@ class BevelFeature(CADFeature):
     bevel_segments: bpy.props.IntProperty(name="Segments", default=4, min=1)
 
 
-class CADToolsSettings(bpy.types.PropertyGroup):
-    """Stores settings for the CAD addon."""
-    # --- Feature Tree ---
+class ObjectCADSettings(bpy.types.PropertyGroup):
+    """Stores object-specific settings for the CAD addon, primarily the feature tree."""
     feature_tree: bpy.props.CollectionProperty(type=CADFeature)
     active_feature_index: bpy.props.IntProperty()
-
-    # --- UI Expansion States ---
     expand_feature_tree: bpy.props.BoolProperty(default=True)
+
+class SceneCADSettings(bpy.types.PropertyGroup):
+    """Stores scene-level settings for the CAD addon."""
+    # --- UI Expansion States ---
     expand_view_navigator: bpy.props.BoolProperty(default=True)
     expand_reference_sketches: bpy.props.BoolProperty(default=False)
     expand_units_and_grid: bpy.props.BoolProperty(default=False)
@@ -140,15 +141,18 @@ classes = (
     CADFeature,
     ExtrudeFeature,
     BevelFeature,
-    CADToolsSettings,
+    ObjectCADSettings,
+    SceneCADSettings,
 )
 
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
-    bpy.types.Object.cad_tool_settings = bpy.props.PointerProperty(type=CADToolsSettings)
+    bpy.types.Object.object_cad_settings = bpy.props.PointerProperty(type=ObjectCADSettings)
+    bpy.types.Scene.scene_cad_settings = bpy.props.PointerProperty(type=SceneCADSettings)
 
 def unregister():
-    del bpy.types.Object.cad_tool_settings
+    del bpy.types.Scene.scene_cad_settings
+    del bpy.types.Object.object_cad_settings
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)

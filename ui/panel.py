@@ -13,10 +13,6 @@ from ..operators.op_3d import (
     MESH_OT_simple_extrude, MESH_OT_inset_faces, MESH_OT_offset_edges, MESH_OT_bevel_edges,
     MESH_OT_create_hole, MESH_OT_create_gear
 )
-from ..operators.op_3d import (
-    MESH_OT_simple_extrude, MESH_OT_inset_faces, MESH_OT_offset_edges, MESH_OT_bevel_edges,
-    MESH_OT_create_hole, MESH_OT_create_gear
-)
 from ..operators.reference_manager import IMAGE_OT_load_reference, IMAGE_OT_clear_reference
 from ..operators.feature_manager import (
     OBJECT_OT_add_feature, OBJECT_OT_remove_feature, OBJECT_OT_move_feature

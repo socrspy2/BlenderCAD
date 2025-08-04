@@ -246,8 +246,13 @@ class SKETCH_OT_draw_line(SketcherModalBase):
             if len(self.points) >= 3:
                 first_point = self.points[0]
                 last_point = self.points[-1]
-                # Add an edge between the last and first point to close the loop
-                self._add_edge_to_object(context, self.current_blender_object, last_point, first_point)
+                
+                # Only add a closing edge if the first and last points are distinct
+                # (i.e., the polyline isn't already closed by the last click, or degenerate)
+                # Use a small tolerance similar to remove_doubles
+                if (last_point - first_point).length > 0.0001: # Use a small epsilon
+                    # Add an edge between the last and first point to close the loop
+                    self._add_edge_to_object(context, self.current_blender_object, last_point, first_point)
 
             # Ensure the object is selected and active
             bpy.ops.object.select_all(action='DESELECT')

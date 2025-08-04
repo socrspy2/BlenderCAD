@@ -211,6 +211,10 @@ class SKETCH_OT_draw_line(SketcherModalBase):
             print("Error: Target object is not a mesh or does not exist.")
             return
 
+        
+        if (p2 - p1).length < 0.0001: 
+            return
+
         # Get bmesh from object data
         bm = bmesh.new()
         bm.from_mesh(obj.data)

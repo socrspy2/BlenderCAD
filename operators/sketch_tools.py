@@ -211,6 +211,12 @@ class SKETCH_OT_draw_line(SketcherModalBase):
             print("Error: Target object is not a mesh or does not exist.")
             return
 
+        # --- IMPORTANT: Add check for coincident points before creating edge ---
+        # Increased tolerance slightly to help with snapping issues
+        if (p2 - p1).length < 0.001: # Increased tolerance from 0.0001 to 0.001
+            # print("Skipping edge creation: points are too close.") # Optional: for debugging
+            return # Do not create an edge if points are coincident
+
         # Get bmesh from object data
         bm = bmesh.new()
         bm.from_mesh(obj.data)
@@ -243,6 +249,8 @@ class SKETCH_OT_draw_line(SketcherModalBase):
         """Finalizes the drawing operation, selects the object, and cleans up."""
         if self.current_blender_object:
             # If there are at least 3 points, attempt to close the polyline
+            # Check the 'use_fill' property to decide whether to fill the polygon
+            settings = context.scene.scene_cad_settings
             if len(self.points) >= 3:
                 first_point = self.points[0]
                 last_point = self.points[-1]
@@ -254,11 +262,57 @@ class SKETCH_OT_draw_line(SketcherModalBase):
                     # Add an edge between the last and first point to close the loop
                     self._add_edge_to_object(context, self.current_blender_object, last_point, first_point)
 
+                # --- New: Create face if 'use_fill' is enabled ---
+                if settings.use_fill:
+                    self._create_face_from_points(context, self.current_blender_object, self.points)
+
             # Ensure the object is selected and active
             bpy.ops.object.select_all(action='DESELECT')
             self.current_blender_object.select_set(True)
             context.view_layer.objects.active = self.current_blender_object
         self.cleanup(context) # Call base class cleanup
+
+    def _create_face_from_points(self, context, obj, points):
+        """Creates a face from a list of ordered 3D points."""
+        if not obj or obj.type != 'MESH':
+            print("Error: Target object is not a mesh or does not exist.")
+            return
+        if len(points) < 3:
+            print("Cannot create face: Need at least 3 points.")
+            return
+
+        bm = bmesh.new()
+        bm.from_mesh(obj.data)
+
+        # Get existing vertices or create new ones for the face
+        face_verts = []
+        for p in points:
+            v = next((v for v in bm.verts if (v.co - p).length < 0.0001), None)
+            if not v:
+                v = bm.verts.new(p)
+            face_verts.append(v)
+        
+        try:
+            # Check if a face already exists with these vertices to prevent duplicates
+            existing_face = None
+            for f in bm.faces:
+                if len(f.verts) == len(face_verts) and all(v in f.verts for v in face_verts):
+                    existing_face = f
+                    break
+            
+            if not existing_face:
+                bm.faces.new(face_verts)
+        except ValueError as e:
+            print(f"Warning: Could not create face. Geometry might be non-planar or self-intersecting. Error: {e}")
+            # This can happen if points are not perfectly planar or form a complex polygon
+            # For simple polygons, bmesh.faces.new should work.
+            # For complex cases, bmesh.ops.contextual_create(geom=edges_of_loop) might be needed.
+
+        bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0001)
+        bm.to_mesh(obj.data)
+        bm.free()
+        obj.data.update()
+
 
     def draw_callback_px(self, context):
         """Draws the snap indicator and line preview in the 3D view."""

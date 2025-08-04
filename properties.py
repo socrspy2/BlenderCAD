@@ -117,6 +117,7 @@ class SceneCADSettings(bpy.types.PropertyGroup):
     
     use_grid_snap: bpy.props.BoolProperty(name="Grid Snap", default=False)
     use_vertex_snap: bpy.props.BoolProperty(name="Vertex Snap", default=True)
+    use_fill: bpy.props.BoolProperty(name="Auto Fill",description="Automatically creates a face",default=False)
 
     unit_system: bpy.props.EnumProperty(name="Unit System", items=[('METRIC', "Metric", ""), ('IMPERIAL', "Imperial", "")], default='METRIC', update=update_units_and_grid)
     metric_unit: bpy.props.EnumProperty(name="Metric Unit", items=[('METERS', "Meters", ""), ('CENTIMETERS', "Centimeters", ""), ('MILLIMETERS', "Millimeters", "")], default='MILLIMETERS', update=update_units_and_grid)

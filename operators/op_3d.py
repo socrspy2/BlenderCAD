@@ -212,6 +212,14 @@ class MESH_OT_inner_radius(bpy.types.Operator):
         min=0.001,
         subtype='DISTANCE'
     )
+    
+    rotation: bpy.props.FloatProperty(
+        name="Rotation",
+        description="Rotation of the inner hole",
+        default=0.0,
+        subtype='ANGLE',
+        unit='ROTATION'
+    )
 
     @classmethod
     def poll(cls, context):
@@ -223,12 +231,12 @@ class MESH_OT_inner_radius(bpy.types.Operator):
         # Duplicate the object to create the cutter
         bpy.ops.object.duplicate()
         cutter_obj = context.active_object
+        
+        # Rotate the cutter
+        cutter_obj.rotation_euler.z += self.rotation
 
-        # Shrink the cutter object to create the inner void
-        bpy.ops.object.mode_set(mode='EDIT')
-        bpy.ops.mesh.select_all(action='SELECT')
-        bpy.ops.transform.shrink_fatten(value=-self.width)
-        bpy.ops.object.mode_set(mode='OBJECT')
+        # Scale the cutter
+        bpy.ops.transform.resize(value=(1 - self.width, 1 - self.width, 1 - self.width))
 
         # Add boolean modifier to the original object
         bpy.context.view_layer.objects.active = target_obj
